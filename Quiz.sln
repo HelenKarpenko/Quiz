@@ -1,0 +1,37 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28010.2019
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Quiz.DAL", "Quiz.DAL\Quiz.DAL.csproj", "{41DAE872-70A0-4403-BFC1-423D7C9D537B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Quiz.BLL", "Quiz.BLL\Quiz.BLL.csproj", "{B42A4C40-3F41-4F4E-90D3-424B146DA024}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Quiz.Web.API", "Quiz.Web.API\Quiz.Web.API.csproj", "{9F1068FB-8C42-49B5-A448-8AADD5681057}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{41DAE872-70A0-4403-BFC1-423D7C9D537B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{41DAE872-70A0-4403-BFC1-423D7C9D537B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{41DAE872-70A0-4403-BFC1-423D7C9D537B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{41DAE872-70A0-4403-BFC1-423D7C9D537B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B42A4C40-3F41-4F4E-90D3-424B146DA024}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B42A4C40-3F41-4F4E-90D3-424B146DA024}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B42A4C40-3F41-4F4E-90D3-424B146DA024}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B42A4C40-3F41-4F4E-90D3-424B146DA024}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9F1068FB-8C42-49B5-A448-8AADD5681057}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9F1068FB-8C42-49B5-A448-8AADD5681057}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9F1068FB-8C42-49B5-A448-8AADD5681057}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9F1068FB-8C42-49B5-A448-8AADD5681057}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {49A02B0D-DB23-4705-980A-7B1E65AAB9CC}
+	EndGlobalSection
+EndGlobal
