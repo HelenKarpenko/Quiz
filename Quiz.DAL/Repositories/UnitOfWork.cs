@@ -2,143 +2,144 @@ using Microsoft.AspNet.Identity.EntityFramework;
 using Quiz.DAL.Context;
 using Quiz.DAL.Entities;
 using Quiz.DAL.Entities.UserResults;
+using Quiz.DAL.Identity;
 using Quiz.DAL.Interfaces;
 using System;
 using System.Threading.Tasks;
 
 namespace Quiz.DAL.Repositories
 {
-  public class UnitOfWork : IUnitOfWork
-  {
-    private EFContext db;
+	public class UnitOfWork : IUnitOfWork
+	{
+		private EFContext db;
 
-    private TestRepository testRepository;
-    private QuestionRepository questionRepository;
-    private AnswerRepository answerRepository;
-    private TestResultRepository testResultRepository;
-    private ResultDetailsRepository resultDetailsRepository;
+		private TestRepository testRepository;
+		private QuestionRepository questionRepository;
+		private AnswerRepository answerRepository;
+		private TestResultRepository testResultRepository;
+		private ResultDetailsRepository resultDetailsRepository;
 
-    //private ApplicationUserManager userManager;
-    //private ApplicationRoleManager roleManager;
+		private ApplicationUserManager userManager;
+		private ApplicationRoleManager roleManager;
 
-    public UnitOfWork(string connectionString)
-    {
-      if (connectionString == null)
-        throw new ArgumentNullException("ConnectionString must not be null.");
+		public UnitOfWork(string connectionString)
+		{
+			if (connectionString == null)
+				throw new ArgumentNullException("ConnectionString must not be null.");
 
-      db = new EFContext(connectionString);
-    }
+			db = new EFContext(connectionString);
+		}
 
-    public IRepository<Test> Tests
-    {
-      get
-      {
-        if (testRepository == null)
-          testRepository = new TestRepository(db);
+		public IRepository<Test> Tests
+		{
+			get
+			{
+				if (testRepository == null)
+					testRepository = new TestRepository(db);
 
-        return testRepository;
-      }
-    }
+				return testRepository;
+			}
+		}
 
-    public IRepository<Question> Questions
-    {
-      get
-      {
-        if (questionRepository == null)
-          questionRepository = new QuestionRepository(db);
+		public IRepository<Question> Questions
+		{
+			get
+			{
+				if (questionRepository == null)
+					questionRepository = new QuestionRepository(db);
 
-        return questionRepository;
-      }
-    }
+				return questionRepository;
+			}
+		}
 
-    public IRepository<Answer> Answers
-    {
-      get
-      {
-        if (answerRepository == null)
-          answerRepository = new AnswerRepository(db);
+		public IRepository<Answer> Answers
+		{
+			get
+			{
+				if (answerRepository == null)
+					answerRepository = new AnswerRepository(db);
 
-        return answerRepository;
-      }
-    }
+				return answerRepository;
+			}
+		}
 
-    public IRepository<TestResult> TestResults
-    {
-      get
-      {
-        if (testResultRepository == null)
-          testResultRepository = new TestResultRepository(db);
+		public IRepository<TestResult> TestResults
+		{
+			get
+			{
+				if (testResultRepository == null)
+					testResultRepository = new TestResultRepository(db);
 
-        return testResultRepository;
-      }
-    }
+				return testResultRepository;
+			}
+		}
 
-    public IRepository<ResultDetails> ResultDetails
-    {
-      get
-      {
-        if (resultDetailsRepository == null)
-          resultDetailsRepository = new ResultDetailsRepository(db);
+		public IRepository<ResultDetails> ResultDetails
+		{
+			get
+			{
+				if (resultDetailsRepository == null)
+					resultDetailsRepository = new ResultDetailsRepository(db);
 
-        return resultDetailsRepository;
-      }
-    }
+				return resultDetailsRepository;
+			}
+		}
 
-    //public ApplicationUserManager UserManager
-    //{
-    //  get
-    //  {
-    //    if (userManager == null)
-    //      userManager = new ApplicationUserManager(new UserStore<ApplicationUser>(db));
+		public ApplicationUserManager UserManager
+		{
+			get
+			{
+				if (userManager == null)
+					userManager = new ApplicationUserManager(new UserStore<ApplicationUser>(db));
 
-    //    return userManager;
-    //  }
-    //}
-    
-    //public ApplicationRoleManager RoleManager
-    //{
-    //  get
-    //  {
-    //    if (roleManager == null)
-    //      roleManager = new ApplicationRoleManager(new RoleStore<ApplicationRole>(db));
+				return userManager;
+			}
+		}
 
-    //    return roleManager;
-    //  }
-    //}
+		public ApplicationRoleManager RoleManager
+		{
+			get
+			{
+				if (roleManager == null)
+					roleManager = new ApplicationRoleManager(new RoleStore<ApplicationRole>(db));
 
-    public void Save()
-    {
-      db.SaveChanges();
-    }
+				return roleManager;
+			}
+		}
 
-    public async Task SaveAsync()
-    {
-      await db.SaveChangesAsync();
-    }
+		public void Save()
+		{
+			db.SaveChanges();
+		}
 
-    #region Dispose
+		public async Task SaveAsync()
+		{
+			await db.SaveChangesAsync();
+		}
 
-    private bool disposed = false;
+		#region Dispose
 
-    public virtual void Dispose(bool disposed)
-    {
-      if (!this.disposed)
-      {
-        if (disposed)
-        {
-          db.Dispose();
-        }
-        this.disposed = true;
-      }
-    }
+		private bool disposed = false;
 
-    public void Dispose()
-    {
-      Dispose(true);
-      GC.SuppressFinalize(this);
-    }
+		public virtual void Dispose(bool disposed)
+		{
+			if (!this.disposed)
+			{
+				if (disposed)
+				{
+					db.Dispose();
+				}
+				this.disposed = true;
+			}
+		}
 
-    #endregion
+		public void Dispose()
+		{
+			Dispose(true);
+			GC.SuppressFinalize(this);
+		}
 
-  }
+		#endregion
+
+	}
 }

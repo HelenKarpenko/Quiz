@@ -7,13 +7,13 @@ namespace Quiz.BLL.Interfaces
     {
         UserDTO Create(UserDTO userDTO);
 
-        UserDTO Get(int id);
+        UserDTO Get(string id);
 
         IEnumerable<UserDTO> GetAll();
 
-        UserDTO Update(int id, UserDTO userDTO);
+        UserDTO Update(string id, UserDTO userDTO);
 
-        UserDTO Delete(int id);
+        UserDTO Delete(string id);
 
         void Dispose();
     }

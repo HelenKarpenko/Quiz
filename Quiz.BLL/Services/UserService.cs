@@ -10,108 +10,104 @@
 
 //namespace Quiz.BLL.Services
 //{
-//    public class UserService : IUserService
-//    {
-//        private readonly IUnitOfWork _database;
+//	public class UserService : IUserService
+//	{
+//		private readonly IUnitOfWork _database;
 
-//        private IMapper _mapper;
+//		private IMapper _mapper;
 
-//        public UserService(IUnitOfWork uow)
-//        {
-//            _database = uow ?? throw new ArgumentNullException("UnitOfWork must not be null.");
+//		public UserService(IUnitOfWork uow)
+//		{
+//			_database = uow ?? throw new ArgumentNullException("UnitOfWork must not be null.");
 
-//            _mapper = new MapperConfiguration(cfg =>
-//            {
-//                cfg.CreateMap<User, UserDTO>();
-//                cfg.CreateMap<UserDTO, User>();
-//            })
-//            .CreateMapper();
-//        }
+//			_mapper = new MapperConfiguration(cfg =>
+//			{
+//				cfg.CreateMap<ApplicationUser, UserDTO>();
+//				cfg.CreateMap<UserDTO, ApplicationUser>();
+//			})
+//			.CreateMapper();
+//		}
 
-//        public UserDTO Create(UserDTO userDTO)
-//        {
-//            if (userDTO == null)
-//                throw new ArgumentNullException("UserDTO must not be null.");
+//		public UserDTO Create(UserDTO userDTO)
+//		{
+//			if (userDTO == null)
+//				throw new ArgumentNullException("UserDTO must not be null.");
 
-//            User user = _mapper.Map<UserDTO, User>(userDTO);
+//			ApplicationUser user = _mapper.Map<UserDTO, ApplicationUser>(userDTO);
 
-//            User createdUser = _database.Users.Create(user);
+//			ApplicationUser createdUser = _database.Users.Create(user);
 
-//            _database.Save();
+//			_database.Save();
 
-//            UserDTO returnedUser = _mapper.Map<User, UserDTO>(createdUser);
+//			UserDTO returnedUser = _mapper.Map<ApplicationUser, UserDTO>(createdUser);
 
-//            return returnedUser;
-//        }
+//			return returnedUser;
+//		}
 
-//        public UserDTO Delete(int id)
-//        {
-//            if (id <= 0)
-//                throw new ArgumentException("Incorrect userDTO id.");
+//		public UserDTO Delete(string id)
+//		{
+//			if (id == null)
+//				throw new ArgumentException("Incorrect userDTO id.");
 
-//            User deletedUser = _database.Users.Delete(id);
+//			ApplicationUser deletedUser = _database.Users.Delete(id);
 
-//            if (deletedUser == null)
-//                throw new EntityNotFoundException($"User with id = {id} not found.");
+//			if (deletedUser == null)
+//				throw new EntityNotFoundException($"User with id = {id} not found.");
 
-//            _database.Save();
+//			_database.Save();
 
-//            UserDTO returnedUser = _mapper.Map<User, UserDTO>(deletedUser);
+//			UserDTO returnedUser = _mapper.Map<ApplicationUser, UserDTO>(deletedUser);
 
-//            return returnedUser;
-//        }
+//			return returnedUser;
+//		}
 
-//        public void Dispose()
-//        {
-//            _database.Dispose();
-//        }
+//		public void Dispose()
+//		{
+//			_database.Dispose();
+//		}
 
-//        public UserDTO Get(int id)
-//        {
-//            if (id <= 0)
-//                throw new ArgumentException("Incorrect userDTO id.");
+//		public UserDTO Get(string id)
+//		{
+//			if (id == null)
+//				throw new ArgumentException("Incorrect userDTO id.");
 
-//            User user = _database.Users.Get(id);
+//			ApplicationUser user = _database.Users.Get(id);
 
-//            if (user == null)
-//                throw new EntityNotFoundException($"User with id = {id} not found.");
+//			if (user == null)
+//				throw new EntityNotFoundException($"User with id = {id} not found.");
 
-//            UserDTO returnedUser = _mapper.Map<User, UserDTO>(user);
+//			UserDTO returnedUser = _mapper.Map<ApplicationUser, UserDTO>(user);
 
-//            return returnedUser;
-//        }
+//			return returnedUser;
+//		}
 
-//        public IEnumerable<UserDTO> GetAll()
-//        {
-//            List<User> users = _database.Users.GetAll().ToList();
+//		public IEnumerable<UserDTO> GetAll()
+//		{
+//			List<ApplicationUser> users = _database.Users.GetAll().ToList();
 
-//            List<UserDTO> returnedUsers = _mapper.Map<List<User>, List<UserDTO>>(users);
+//			List<UserDTO> returnedUsers = _mapper.Map<List<ApplicationUser>, List<UserDTO>>(users);
 
-//            return returnedUsers;
-//        }
+//			return returnedUsers;
+//		}
 
-//        public UserDTO Update(int id, UserDTO userDTO)
-//        {
-//            if (userDTO == null)
-//                throw new ArgumentNullException("UserDTO must not by null.");
+//		public UserDTO Update(string id, UserDTO userDTO)
+//		{
+//			if (userDTO == null)
+//				throw new ArgumentNullException("UserDTO must not by null.");
+//			userDTO.Id = id ?? throw new ArgumentException("Incorrect user id.");
 
-//            if (id <= 0)
-//                throw new ArgumentException("Incorrect user id.");
+//			ApplicationUser user = _mapper.Map<UserDTO, ApplicationUser>(userDTO);
 
-//            userDTO.Id = id;
+//			ApplicationUser updatedUser = _database.Users.Update(id, user);
 
-//            User user = _mapper.Map<UserDTO, User>(userDTO);
+//			if (updatedUser == null)
+//				throw new EntityNotFoundException($"User with id = {id} not found.");
 
-//            User updatedUser = _database.Users.Update(id, user);
+//			_database.Save();
 
-//            if (updatedUser == null)
-//                throw new EntityNotFoundException($"User with id = {id} not found.");
+//			UserDTO returnedUser = _mapper.Map<ApplicationUser, UserDTO>(updatedUser);
 
-//            _database.Save();
-
-//            UserDTO returnedUser = _mapper.Map<User, UserDTO>(updatedUser);
-
-//            return returnedUser;
-//        }
-//    }
+//			return returnedUser;
+//		}
+//	}
 //}

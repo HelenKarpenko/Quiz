@@ -13,394 +13,426 @@ using System.Threading.Tasks;
 
 namespace Quiz.BLL.Services
 {
-  public class TestService : ITestService
-  {
-    private readonly IUnitOfWork _database;
+	public class TestService : ITestService
+	{
+		private readonly IUnitOfWork _database;
 
-    private IMapper _mapper;
+		private IMapper _mapper;
 
-    public TestService(IUnitOfWork uow)
-    {
-      _database = uow ?? throw new ArgumentNullException("UnitOfWork must not be null.");
-
-      _mapper = new MapperConfiguration(cfg =>
-      {
-        cfg.CreateMap<QuestionDTO, Question>();
-        cfg.CreateMap<Question, QuestionDTO>()
-          .ForMember(qDto => qDto.Answers, opt => opt.MapFrom(q => q.Answers));
-        cfg.CreateMap<AnswerDTO, Answer>();
-        cfg.CreateMap<Answer, AnswerDTO>();
-        cfg.CreateMap<TestDTO, Test>();
-        cfg.CreateMap<Test, TestDTO>()
-          .ForMember(tDto => tDto.Questions, opt => opt.MapFrom(t => t.Questions));
-        cfg.CreateMap<TestResult, TestResultDTO>();
-        cfg.CreateMap<TestResultDTO, TestResult>();
-        cfg.CreateMap<ResultDetails, ResultDetailsDTO>();
-        cfg.CreateMap<ResultDetailsDTO, ResultDetails>();
-      })
-      .CreateMapper();
-    }
+		public TestService(IUnitOfWork uow)
+		{
+			_database = uow ?? throw new ArgumentNullException("UnitOfWork must not be null.");
 
-    public async Task<TestDTO> Create(TestDTO testDTO)
-    {
-      if (testDTO == null)
-        throw new ArgumentNullException("TestDTO must not be null.");
+			_mapper = new MapperConfiguration(cfg =>
+			{
+				cfg.CreateMap<QuestionDTO, Question>();
+				cfg.CreateMap<Question, QuestionDTO>()
+			.ForMember(qDto => qDto.Answers, opt => opt.MapFrom(q => q.Answers));
+				cfg.CreateMap<AnswerDTO, Answer>();
+				cfg.CreateMap<Answer, AnswerDTO>();
+				cfg.CreateMap<TestDTO, Test>();
+				cfg.CreateMap<Test, TestDTO>()
+			.ForMember(tDto => tDto.Questions, opt => opt.MapFrom(t => t.Questions));
+				cfg.CreateMap<TestResult, TestResultDTO>();
+				cfg.CreateMap<TestResultDTO, TestResult>();
+				cfg.CreateMap<ResultDetails, ResultDetailsDTO>();
+				cfg.CreateMap<ResultDetailsDTO, ResultDetails>();
+			})
+			.CreateMapper();
+		}
 
-      Test test = _mapper.Map<TestDTO, Test>(testDTO);
+		public async Task<TestDTO> Create(TestDTO testDTO)
+		{
+			if (testDTO == null)
+				throw new ArgumentNullException("TestDTO must not be null.");
 
-      Test createdTest = _database.Tests.Create(test);
+			Test test = _mapper.Map<TestDTO, Test>(testDTO);
 
-      await _database.SaveAsync();
+			Test createdTest = _database.Tests.Create(test);
 
-      TestDTO returnedTest = _mapper.Map<Test, TestDTO>(createdTest);
+			await _database.SaveAsync();
 
-      return returnedTest;
-    }
+			TestDTO returnedTest = _mapper.Map<Test, TestDTO>(createdTest);
 
-    public async Task<TestDTO> Delete(int id)
-    {
-      if (id <= 0)
-        throw new ArgumentException("Incorrect test id.");
+			return returnedTest;
+		}
 
-      Test deletedTest = _database.Tests.Delete(id);
+		public async Task<TestDTO> Delete(int id)
+		{
+			if (id <= 0)
+				throw new ArgumentException("Incorrect test id.");
 
-      if (deletedTest == null)
-        throw new EntityNotFoundException($"Test with id = {id} not found.");
+			Test deletedTest = _database.Tests.Delete(id);
 
-      await _database.SaveAsync();
+			if (deletedTest == null)
+				throw new EntityNotFoundException($"Test with id = {id} not found.");
 
-      TestDTO returnedTest = _mapper.Map<Test, TestDTO>(deletedTest);
+			await _database.SaveAsync();
 
-      return returnedTest;
-    }
+			TestDTO returnedTest = _mapper.Map<Test, TestDTO>(deletedTest);
 
-    public void Dispose()
-    {
-      _database.Dispose();
-    }
+			return returnedTest;
+		}
 
-    public async Task<TestDTO> Get(int id)
-    {
-      if (id <= 0)
-        throw new ArgumentException("Incorrect test id.");
+		public void Dispose()
+		{
+			_database.Dispose();
+		}
 
-      Test test = await _database.Tests.GetAsync(id);
+		public async Task<TestDTO> Get(int id)
+		{
+			if (id <= 0)
+				throw new ArgumentException("Incorrect test id.");
 
-      if (test == null)
-        throw new EntityNotFoundException($"Test with id = {id} not found.");
+			Test test = await _database.Tests.GetAsync(id);
 
-      TestDTO returnedTest = _mapper.Map<Test, TestDTO>(test);
+			if (test == null)
+				throw new EntityNotFoundException($"Test with id = {id} not found.");
 
-      return returnedTest;
-    }
-    
-    public async Task<IEnumerable<TestDTO>> GetAll()
-    {
-      IEnumerable<Test> tests = await _database.Tests.GetAllAsync();
+			TestDTO returnedTest = _mapper.Map<Test, TestDTO>(test);
 
-      List<TestDTO> returnedTests = _mapper.Map<IEnumerable<Test>, List<TestDTO>>(tests);
+			return returnedTest;
+		}
 
-      return returnedTests;
-    }
+		public async Task<IEnumerable<TestDTO>> GetAll()
+		{
+			IEnumerable<Test> tests = await _database.Tests.GetAllAsync();
 
-    public async Task<PagedResultDTO<TestDTO>> GetPaged(
-      int page = 1,
-      int pageSize = 10)
-    {
-      if (page <= 0)
-        throw new ArgumentException("Page must be greater than zero.");
-      if (pageSize <= 0)
-        throw new ArgumentException("Page size must be greater than zero.");
+			List<TestDTO> returnedTests = _mapper.Map<IEnumerable<Test>, List<TestDTO>>(tests);
 
-      IEnumerable<Test> tests = await _database.Tests.GetAllAsync();
+			return returnedTests;
+		}
 
-      int skip = pageSize * (page - 1);
-      int total = tests.Count();
+		public async Task<PagedResultDTO<TestDTO>> GetPaged(
+															string query,
+															int page = 1,
+															int pageSize = 10)
+		{
+			if (query == null)
+				throw new ArgumentNullException("Name must not be null.");
+			if (page <= 0)
+				throw new ArgumentException("Page must be greater than zero.");
+			if (pageSize <= 0)
+				throw new ArgumentException("Page size must be greater than zero.");
 
-      var result = tests
-        .OrderBy(t => t.Id)
-        .Skip(skip)
-        .Take(pageSize);
-      
-      List<TestDTO> testsDto = _mapper.Map<IEnumerable<Test>, List<TestDTO>>(result);
+			IEnumerable<Test> tests = await _database.Tests.FindAsync(t => t.Name.ToLower().Contains(query.ToLower()));
 
-      return new PagedResultDTO<TestDTO>(testsDto, page,pageSize, total);
-    }
+			int skip = pageSize * (page - 1);
+			int total = tests.Count();
 
-    public async Task<TestDTO> Update(int id, TestDTO testDTO)
-    {
-      if (testDTO == null)
-        throw new ArgumentNullException("TestDTO must not be null.");
+			List<Test> result = tests
+				.ToList()
+				.OrderBy(t => t.Id)
+				.Skip(skip)
+				.Take(pageSize)
+				.ToList();
 
-      if (id <= 0)
-        throw new ArgumentException("Incorrect test id.");
+			List<TestDTO> testsDto = _mapper.Map<List<Test>, List<TestDTO>>(result);
 
-      testDTO.Id = id;
+			return new PagedResultDTO<TestDTO>(testsDto, page, pageSize, total);
+		}
 
-      Test test = _mapper.Map<TestDTO, Test>(testDTO);
+		public async Task<TestDTO> Update(int id, TestDTO testDTO)
+		{
+			if (testDTO == null)
+				throw new ArgumentNullException("TestDTO must not be null.");
 
-      Test updatedTest = _database.Tests.Update(id, test);
+			if (id <= 0)
+				throw new ArgumentException("Incorrect test id.");
 
-      if (updatedTest == null)
-        throw new EntityNotFoundException($"Test with id = {id} not found.");
+			testDTO.Id = id;
 
-      await _database.SaveAsync();
+			Test test = _mapper.Map<TestDTO, Test>(testDTO);
 
-      TestDTO returnedTest = _mapper.Map<Test, TestDTO>(updatedTest);
+			Test updatedTest = _database.Tests.Update(id, test);
 
-      return returnedTest;
-    }
-
-    public async Task<TestResultDTO> SaveResult(int id, TestResultDTO testResultDTO)
-    {
-      if (id <= 0)
-        throw new ArgumentException("Incorrect test id.");
-      if (testResultDTO == null)
-        throw new ArgumentNullException("Test result nust not be null.");
+			if (updatedTest == null)
+				throw new EntityNotFoundException($"Test with id = {id} not found.");
 
-      TestResult testResult = _mapper.Map<TestResultDTO, TestResult>(testResultDTO);
+			await _database.SaveAsync();
 
-      testResult.Details = new List<ResultDetails>();
-      foreach (KeyValuePair<int, int> answer in testResultDTO.Answers)
-      {
-        testResult.Details.Add(new ResultDetails { QuestionId = answer.Key, AnswerId = answer.Value });
-      }
+			TestDTO returnedTest = _mapper.Map<Test, TestDTO>(updatedTest);
 
-      TestResult savedTestResult = _database.TestResults.Create(testResult);
-      await _database.SaveAsync();
+			return returnedTest;
+		}
 
-      TestResultDTO returnedTestResult = _mapper.Map<TestResult, TestResultDTO>(savedTestResult);
+		public async Task<TestResultDTO> SaveResult(int id, TestResultDTO testResultDTO)
+		{
+			if (id <= 0)
+				throw new ArgumentException("Incorrect test id.");
+			if (testResultDTO == null)
+				throw new ArgumentNullException("Test result nust not be null.");
+
+			TestResult testResult = _mapper.Map<TestResultDTO, TestResult>(testResultDTO);
 
-      foreach (var answer in savedTestResult.Details)
-      {
-        returnedTestResult.Answers[answer.QuestionId] = answer.AnswerId;
-      }
+			testResult.Details = new List<ResultDetails>();
+			foreach (KeyValuePair<int, int> answer in testResultDTO.Answers)
+			{
+				testResult.Details.Add(new ResultDetails { QuestionId = answer.Key, AnswerId = answer.Value });
+			}
+			testResult.Result = СalculateResult(await Get(id), testResultDTO.Answers);
 
-      return returnedTestResult;
-    }
+			TestResult savedTestResult = _database.TestResults.Create(testResult);
+			await _database.SaveAsync();
+
+			TestResultDTO returnedTestResult = _mapper.Map<TestResult, TestResultDTO>(savedTestResult);
+
+			foreach (var answer in savedTestResult.Details)
+			{
+				returnedTestResult.Answers[answer.QuestionId] = answer.AnswerId;
+			}
+
+			return returnedTestResult;
+		}
+
+		public async Task<IEnumerable<TestDTO>> GetByName(string name)
+		{
+			if (name == null)
+				throw new ArgumentNullException("Name must not be null.");
 
-    #region Question 
+			IEnumerable<Test> tests = await _database.Tests.FindAsync(t => t.Name.ToLower().Contains(name.ToLower()));
+			List<TestDTO> returnedTests = _mapper.Map<IEnumerable<Test>, List<TestDTO>>(tests);
+			return returnedTests;
+		}
 
-    public async Task<QuestionDTO> AddQuestion(int testId, QuestionDTO questionDTO)
-    {
-      if (testId <= 0)
-        throw new ArgumentException("Incorrect test id.");
-      if (questionDTO == null)
-        throw new ArgumentNullException("QuestionDTO must not be null.");
+		private int СalculateResult(TestDTO test, Dictionary<int, int> answers)
+		{
+			int result = 0;
 
-      Question question = _mapper.Map<QuestionDTO, Question>(questionDTO);
-      Question returnedQuestion = _database.Questions.Create(question);
-      await _database.SaveAsync();
+			foreach (var question in test.Questions)
+			{
+				if (answers.ContainsKey(question.Id) &&
+					question.Answers.Where(a => a.IsCorrect).First().Id == answers[question.Id])
+				{
+					result++;
+				}
+			}
+
+			return result;
+		}
+
+		#region Question 
 
-      QuestionDTO returnedQuestionDTO = _mapper.Map<Question, QuestionDTO>(returnedQuestion);
-      return returnedQuestionDTO;
-    }
+		public async Task<QuestionDTO> AddQuestion(int testId, QuestionDTO questionDTO)
+		{
+			if (testId <= 0)
+				throw new ArgumentException("Incorrect test id.");
+			if (questionDTO == null)
+				throw new ArgumentNullException("QuestionDTO must not be null.");
 
-    public async Task<QuestionDTO> DeleteQuestion(int testId, int questionId)
-    {
-      if (testId <= 0)
-        throw new ArgumentException("Incorrect test id.");
-      if (questionId <= 0)
-        throw new ArgumentException("Incorrect question id.");
+			Question question = _mapper.Map<QuestionDTO, Question>(questionDTO);
+			Question returnedQuestion = _database.Questions.Create(question);
+			await _database.SaveAsync();
+
+			QuestionDTO returnedQuestionDTO = _mapper.Map<Question, QuestionDTO>(returnedQuestion);
+			return returnedQuestionDTO;
+		}
+
+		public async Task<QuestionDTO> DeleteQuestion(int testId, int questionId)
+		{
+			if (testId <= 0)
+				throw new ArgumentException("Incorrect test id.");
+			if (questionId <= 0)
+				throw new ArgumentException("Incorrect question id.");
+
+			Question returnedQuestion = _database.Questions.Delete(questionId);
+			await _database.SaveAsync();
 
-      Question returnedQuestion = _database.Questions.Delete(questionId);
-      await _database.SaveAsync();
+			QuestionDTO returnedQuestionDTO = _mapper.Map<Question, QuestionDTO>(returnedQuestion);
+			return returnedQuestionDTO;
+		}
 
-      QuestionDTO returnedQuestionDTO = _mapper.Map<Question, QuestionDTO>(returnedQuestion);
-      return returnedQuestionDTO;
-    }
+		public async Task<QuestionDTO> GetQuestion(int testId, int questionId)
+		{
+			return null;
+			//if (testId <= 0)
+			//  throw new ArgumentException("Incorrect test id.");
+			//if (questionId <= 0)
+			//  throw new ArgumentException("Incorrect question id.");
+
+			//Question question = await _database.Questions.FindAsync(q => q.Id == questionId && q.TestId == testId).Id;
+			//if (question == null)
+			//  throw new EntityNotFoundException($"Test with id = {questionId} not found.");
+
+			//QuestionDTO questionDTO = _mapper.Map<Question, QuestionDTO>(question);
+			//return questionDTO;
+		}
+
+		public async Task<IEnumerable<QuestionDTO>> GetAllQuestions(int testId)
+		{
+			if (testId <= 0)
+				throw new ArgumentException("Incorrect test id.");
+
+			TestDTO testDTO = await Get(testId);
 
-    public async Task<QuestionDTO> GetQuestion(int testId, int questionId)
-    {
-      return null;
-      //if (testId <= 0)
-      //  throw new ArgumentException("Incorrect test id.");
-      //if (questionId <= 0)
-      //  throw new ArgumentException("Incorrect question id.");
+			return testDTO.Questions;
+		}
+
+		public async Task<QuestionDTO> UpdateQuestion(int testId, int questionId, QuestionDTO questionDTO)
+		{
+			if (testId <= 0)
+				throw new ArgumentException("Incorrect test id.");
+			if (questionId <= 0)
+				throw new ArgumentException("Incorrect question id.");
+			if (questionDTO == null)
+				throw new ArgumentNullException("QuestionDTO must not be null.");
 
-      //Question question = await _database.Questions.FindAsync(q => q.Id == questionId && q.TestId == testId).Id;
-      //if (question == null)
-      //  throw new EntityNotFoundException($"Test with id = {questionId} not found.");
+			questionDTO.Id = questionId;
+			Question question = _mapper.Map<QuestionDTO, Question>(questionDTO);
+			Question updateQuestion = _database.Questions.Update(questionId, question);
+			if (updateQuestion == null)
+				throw new EntityNotFoundException($"Question with id = {questionId} not found.");
+
+			if (updateQuestion.TestId != testId)
+				throw new EntityNotFoundException($"Test doesnt have question with id = {questionId}.");
+
+			await _database.SaveAsync();
+
+			QuestionDTO returnedQuestionDTO = _mapper.Map<Question, QuestionDTO>(updateQuestion);
+			return returnedQuestionDTO;
+		}
+
+		#endregion
+
+		#region Answer
+
+		public async Task<AnswerDTO> AddAnswerToQuestion(int testId, int questionId, AnswerDTO answerDTO)
+		{
+			if (testId <= 0)
+				throw new ArgumentException("Incorrect test id.");
+			if (questionId <= 0)
+				throw new ArgumentException("Incorrect question id.");
+			if (answerDTO == null)
+				throw new ArgumentNullException("AnswerDTO must not be null.");
+
+			if (!TestСontainsQuestion(testId, questionId))
+				throw new DoesNotContainException($"Test with id{testId} doesnt have question with id{questionId}");
+
+			answerDTO.QuestionId = questionId;
+			Answer answer = _mapper.Map<AnswerDTO, Answer>(answerDTO);
+			Answer returnedAnswer = _database.Answers.Create(answer);
 
-      //QuestionDTO questionDTO = _mapper.Map<Question, QuestionDTO>(question);
-      //return questionDTO;
-    }
+			await _database.SaveAsync();
 
-    public async Task<IEnumerable<QuestionDTO>> GetAllQuestions(int testId)
-    {
-      if (testId <= 0)
-        throw new ArgumentException("Incorrect test id.");
+			AnswerDTO returnedAnswerDTO = _mapper.Map<Answer, AnswerDTO>(returnedAnswer);
+			return returnedAnswerDTO;
+		}
 
-      TestDTO testDTO = await Get(testId);
+		public async Task<AnswerDTO> DeleteAnswerFromQuestion(int testId, int questionId, int answerId)
+		{
+			if (testId <= 0)
+				throw new ArgumentException("Incorrect test id.");
+			if (questionId <= 0)
+				throw new ArgumentException("Incorrect question id.");
+			if (answerId <= 0)
+				throw new ArgumentException("Incorrect answer id.");
+
+			if (!TestСontainsQuestion(testId, questionId))
+				throw new DoesNotContainException($"Test with id{testId} doesnt have question with id{questionId}");
 
-      return testDTO.Questions;
-    }
+			if (!QuestionСontainsAnswer(questionId, answerId))
+				throw new DoesNotContainException($"Question with id:{questionId} doesnt have answer with id:{answerId}");
 
-    public async Task<QuestionDTO> UpdateQuestion(int testId, int questionId, QuestionDTO questionDTO)
-    {
-      if (testId <= 0)
-        throw new ArgumentException("Incorrect test id.");
-      if (questionId <= 0)
-        throw new ArgumentException("Incorrect question id.");
-      if (questionDTO == null)
-        throw new ArgumentNullException("QuestionDTO must not be null.");
-
-      questionDTO.Id = questionId;
-      Question question = _mapper.Map<QuestionDTO, Question>(questionDTO);
-      Question updateQuestion = _database.Questions.Update(questionId, question);
-      if (updateQuestion == null)
-        throw new EntityNotFoundException($"Question with id = {questionId} not found.");
-
-      if (updateQuestion.TestId != testId)
-        throw new EntityNotFoundException($"Test doesnt have question with id = {questionId}.");
-
-      await _database.SaveAsync();
-
-      QuestionDTO returnedQuestionDTO = _mapper.Map<Question, QuestionDTO>(updateQuestion);
-      return returnedQuestionDTO;
-    }
-
-    #endregion
-
-    #region Answer
-
-    public async Task<AnswerDTO> AddAnswerToQuestion(int testId, int questionId, AnswerDTO answerDTO)
-    {
-      if (testId <= 0)
-        throw new ArgumentException("Incorrect test id.");
-      if (questionId <= 0)
-        throw new ArgumentException("Incorrect question id.");
-      if (answerDTO == null)
-        throw new ArgumentNullException("AnswerDTO must not be null.");
-
-      if (!TestСontainsQuestion(testId, questionId))
-        throw new DoesNotContainException($"Test with id{testId} doesnt have question with id{questionId}");
-
-      answerDTO.QuestionId = questionId;
-      Answer answer = _mapper.Map<AnswerDTO, Answer>(answerDTO);
-      Answer returnedAnswer = _database.Answers.Create(answer);
-
-      await _database.SaveAsync();
-
-      AnswerDTO returnedAnswerDTO = _mapper.Map<Answer, AnswerDTO>(returnedAnswer);
-      return returnedAnswerDTO;
-    }
-
-    public async Task<AnswerDTO> DeleteAnswerFromQuestion(int testId, int questionId, int answerId)
-    {
-      if (testId <= 0)
-        throw new ArgumentException("Incorrect test id.");
-      if (questionId <= 0)
-        throw new ArgumentException("Incorrect question id.");
-      if (answerId <= 0)
-        throw new ArgumentException("Incorrect answer id.");
-
-      if (!TestСontainsQuestion(testId, questionId))
-        throw new DoesNotContainException($"Test with id{testId} doesnt have question with id{questionId}");
-
-      if (!QuestionСontainsAnswer(questionId, answerId))
-        throw new DoesNotContainException($"Question with id:{questionId} doesnt have answer with id:{answerId}");
-
-      Answer returnedAnswer = _database.Answers.Delete(answerId);
-
-      await _database.SaveAsync();
-
-      AnswerDTO returnedAnswerDTO = _mapper.Map<Answer, AnswerDTO>(returnedAnswer);
-      return returnedAnswerDTO;
-    }
-
-    public async Task<AnswerDTO> GetAnswerFromQuestion(int testId, int questionId, int answerId)
-    {
-      if (testId <= 0)
-        throw new ArgumentException("Incorrect test id.");
-      if (questionId <= 0)
-        throw new ArgumentException("Incorrect question id.");
-      if (answerId <= 0)
-        throw new ArgumentException("Incorrect answer id.");
-
-      if (!TestСontainsQuestion(testId, questionId))
-        throw new DoesNotContainException($"Test with id:{testId} doesnt have question with id:{questionId}");
-      if (!QuestionСontainsAnswer(questionId, answerId))
-        throw new DoesNotContainException($"Question with id:{questionId} doesnt have answer with id:{answerId}");
-
-      Answer answer = await _database.Answers.GetAsync(answerId);
-      if (answer == null)
-        throw new EntityNotFoundException($"Answer with id = {answerId} not found.");
-
-      AnswerDTO answerDTO = _mapper.Map<Answer, AnswerDTO>(answer);
-
-      return answerDTO;
-    }
-
-    public async Task<IEnumerable<AnswerDTO>> GetAllAnswersFromQuestion(int testId, int questionId)
-    {
-      if (testId <= 0)
-        throw new ArgumentException("Incorrect test id.");
-      if (questionId <= 0)
-        throw new ArgumentException("Incorrect question id.");
-
-      if (!TestСontainsQuestion(testId, questionId))
-        throw new DoesNotContainException($"Test with id:{testId} doesnt have question with id:{questionId}");
-
-      QuestionDTO question = await GetQuestion(testId, questionId);
-
-      return question.Answers;
-    }
-
-    public async Task<AnswerDTO> UpdateAnswerFromQuestion(int testId, int questionId, int answerId, AnswerDTO answerDTO)
-    {
-      if (testId <= 0)
-        throw new ArgumentException("Incorrect test id.");
-      if (questionId <= 0)
-        throw new ArgumentException("Incorrect question id.");
-      if (answerId <= 0)
-        throw new ArgumentException("Incorrect answer id.");
-      if (answerDTO == null)
-        throw new ArgumentNullException("AnswerDTO must not be null.");
-
-      if (!TestСontainsQuestion(testId, questionId))
-        throw new DoesNotContainException($"Test with id:{testId} doesnt have question with id:{questionId}");
-      if (!QuestionСontainsAnswer(questionId, answerId))
-        throw new DoesNotContainException($"Question with id:{questionId} doesnt have answer with id:{answerId}");
-
-      answerDTO.Id = questionId;
-
-      Answer answer = _mapper.Map<AnswerDTO, Answer>(answerDTO);
-
-      Answer updateAnswer = _database.Answers.Update(answerId, answer);
-      if (updateAnswer == null)
-        throw new EntityNotFoundException($"Answer with id = {questionId} not found.");
-
-      await _database.SaveAsync();
-
-      AnswerDTO returnedAnswerDTO = _mapper.Map<Answer, AnswerDTO>(updateAnswer);
-      return returnedAnswerDTO;
-    }
-
-    #endregion
-
-    private bool TestСontainsQuestion(int testId, int questionId)
-    {
-      if (testId <= 0)
-        throw new ArgumentException("Incorrect test id.");
-
-      if (questionId <= 0)
-        throw new ArgumentException("Incorrect question id.");
-
-      Test test = _database.Tests.Get(testId);
-      return test.Questions.Where(q => q.Id == questionId).First() != null;
-    }
-
-    private bool QuestionСontainsAnswer(int questionId, int answerId)
-    {
-      if (questionId <= 0)
-        throw new ArgumentException("Incorrect question id.");
-
-      if (answerId <= 0)
-        throw new ArgumentException("Incorrect answer id.");
-
-      Question question = _database.Questions.Get(questionId);
-      return question.Answers.Where(a => a.Id == answerId).First() != null;
-    }
-  }
+			Answer returnedAnswer = _database.Answers.Delete(answerId);
+
+			await _database.SaveAsync();
+
+			AnswerDTO returnedAnswerDTO = _mapper.Map<Answer, AnswerDTO>(returnedAnswer);
+			return returnedAnswerDTO;
+		}
+
+		public async Task<AnswerDTO> GetAnswerFromQuestion(int testId, int questionId, int answerId)
+		{
+			if (testId <= 0)
+				throw new ArgumentException("Incorrect test id.");
+			if (questionId <= 0)
+				throw new ArgumentException("Incorrect question id.");
+			if (answerId <= 0)
+				throw new ArgumentException("Incorrect answer id.");
+
+			if (!TestСontainsQuestion(testId, questionId))
+				throw new DoesNotContainException($"Test with id:{testId} doesnt have question with id:{questionId}");
+			if (!QuestionСontainsAnswer(questionId, answerId))
+				throw new DoesNotContainException($"Question with id:{questionId} doesnt have answer with id:{answerId}");
+
+			Answer answer = await _database.Answers.GetAsync(answerId);
+			if (answer == null)
+				throw new EntityNotFoundException($"Answer with id = {answerId} not found.");
+
+			AnswerDTO answerDTO = _mapper.Map<Answer, AnswerDTO>(answer);
+
+			return answerDTO;
+		}
+
+		public async Task<IEnumerable<AnswerDTO>> GetAllAnswersFromQuestion(int testId, int questionId)
+		{
+			if (testId <= 0)
+				throw new ArgumentException("Incorrect test id.");
+			if (questionId <= 0)
+				throw new ArgumentException("Incorrect question id.");
+
+			if (!TestСontainsQuestion(testId, questionId))
+				throw new DoesNotContainException($"Test with id:{testId} doesnt have question with id:{questionId}");
+
+			QuestionDTO question = await GetQuestion(testId, questionId);
+
+			return question.Answers;
+		}
+
+		public async Task<AnswerDTO> UpdateAnswerFromQuestion(int testId, int questionId, int answerId, AnswerDTO answerDTO)
+		{
+			if (testId <= 0)
+				throw new ArgumentException("Incorrect test id.");
+			if (questionId <= 0)
+				throw new ArgumentException("Incorrect question id.");
+			if (answerId <= 0)
+				throw new ArgumentException("Incorrect answer id.");
+			if (answerDTO == null)
+				throw new ArgumentNullException("AnswerDTO must not be null.");
+
+			if (!TestСontainsQuestion(testId, questionId))
+				throw new DoesNotContainException($"Test with id:{testId} doesnt have question with id:{questionId}");
+			if (!QuestionСontainsAnswer(questionId, answerId))
+				throw new DoesNotContainException($"Question with id:{questionId} doesnt have answer with id:{answerId}");
+
+			answerDTO.Id = questionId;
+
+			Answer answer = _mapper.Map<AnswerDTO, Answer>(answerDTO);
+
+			Answer updateAnswer = _database.Answers.Update(answerId, answer);
+			if (updateAnswer == null)
+				throw new EntityNotFoundException($"Answer with id = {questionId} not found.");
+
+			await _database.SaveAsync();
+
+			AnswerDTO returnedAnswerDTO = _mapper.Map<Answer, AnswerDTO>(updateAnswer);
+			return returnedAnswerDTO;
+		}
+
+		#endregion
+
+		private bool TestСontainsQuestion(int testId, int questionId)
+		{
+			if (testId <= 0)
+				throw new ArgumentException("Incorrect test id.");
+
+			if (questionId <= 0)
+				throw new ArgumentException("Incorrect question id.");
+
+			Test test = _database.Tests.Get(testId);
+			return test.Questions.Where(q => q.Id == questionId).First() != null;
+		}
+
+		private bool QuestionСontainsAnswer(int questionId, int answerId)
+		{
+			if (questionId <= 0)
+				throw new ArgumentException("Incorrect question id.");
+
+			if (answerId <= 0)
+				throw new ArgumentException("Incorrect answer id.");
+
+			Question question = _database.Questions.Get(questionId);
+			return question.Answers.Where(a => a.Id == answerId).First() != null;
+		}
+	}
 }
