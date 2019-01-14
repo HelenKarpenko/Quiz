@@ -12,18 +12,23 @@ namespace Quiz.BLL.DTO.UserResult
 
 		public int TestId { get; set; }
 
+		public string TestName { get; set; }
+
+		public string UserName { get; set; }
+
 		public string UserId { get; set; }
 
 		public DateTime PassageDate { get; set; }
 
-		public Dictionary<int, int> Answers { get; set; }
+		public virtual ICollection<ResultDetailsDTO> Details { get; set; }
 
 		public int Result { get; set; }
 
+		public int MaxResult { get; set; }
+
 		public TestResultDTO()
 		{
-			//Details = new HashSet<ResultDetailsDTO>();
-			Answers = new Dictionary<int, int>();
+			Details = new HashSet<ResultDetailsDTO>();
 		}
 	}
 }

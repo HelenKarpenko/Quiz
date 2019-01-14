@@ -1,6 +1,7 @@
 using Microsoft.AspNet.Identity.EntityFramework;
 using Quiz.DAL.Context;
 using Quiz.DAL.Entities;
+using Quiz.DAL.Entities.User;
 using Quiz.DAL.Entities.UserResults;
 using Quiz.DAL.Identity;
 using Quiz.DAL.Interfaces;
@@ -18,6 +19,7 @@ namespace Quiz.DAL.Repositories
 		private AnswerRepository answerRepository;
 		private TestResultRepository testResultRepository;
 		private ResultDetailsRepository resultDetailsRepository;
+		private UserRepository userRepository;
 
 		private ApplicationUserManager userManager;
 		private ApplicationRoleManager roleManager;
@@ -82,6 +84,17 @@ namespace Quiz.DAL.Repositories
 					resultDetailsRepository = new ResultDetailsRepository(db);
 
 				return resultDetailsRepository;
+			}
+		}
+
+		public IRepository<UserInfo> UsersInfo
+		{
+			get
+			{
+				if (userRepository == null)
+					userRepository = new UserRepository(db);
+
+				return userRepository;
 			}
 		}
 

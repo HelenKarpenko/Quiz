@@ -21,8 +21,6 @@ namespace Quiz.BLL.Interfaces
 
 		Task<TestDTO> Delete(int id);
 
-		Task<TestResultDTO> SaveResult(int id, TestResultDTO testResultDTO);
-
 		void Dispose();
 
 		#endregion

@@ -78,7 +78,9 @@ namespace Quiz.DAL.Repositories
 
     public async Task<IEnumerable<TestResult>> GetAllAsync()
     {
-      return await _db.TestResults.ToListAsync();
+      return await _db.TestResults
+				
+				.ToListAsync();
     }
     
     public TestResult Update(int id, TestResult item)

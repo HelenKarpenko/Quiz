@@ -27,12 +27,12 @@ namespace Quiz.BLL.Services
 			{
 				cfg.CreateMap<QuestionDTO, Question>();
 				cfg.CreateMap<Question, QuestionDTO>()
-			.ForMember(qDto => qDto.Answers, opt => opt.MapFrom(q => q.Answers));
+					.ForMember(qDto => qDto.Answers, opt => opt.MapFrom(q => q.Answers));
 				cfg.CreateMap<AnswerDTO, Answer>();
 				cfg.CreateMap<Answer, AnswerDTO>();
 				cfg.CreateMap<TestDTO, Test>();
 				cfg.CreateMap<Test, TestDTO>()
-			.ForMember(tDto => tDto.Questions, opt => opt.MapFrom(t => t.Questions));
+					.ForMember(tDto => tDto.Questions, opt => opt.MapFrom(t => t.Questions));
 				cfg.CreateMap<TestResult, TestResultDTO>();
 				cfg.CreateMap<TestResultDTO, TestResult>();
 				cfg.CreateMap<ResultDetails, ResultDetailsDTO>();
@@ -156,35 +156,6 @@ namespace Quiz.BLL.Services
 			return returnedTest;
 		}
 
-		public async Task<TestResultDTO> SaveResult(int id, TestResultDTO testResultDTO)
-		{
-			if (id <= 0)
-				throw new ArgumentException("Incorrect test id.");
-			if (testResultDTO == null)
-				throw new ArgumentNullException("Test result nust not be null.");
-
-			TestResult testResult = _mapper.Map<TestResultDTO, TestResult>(testResultDTO);
-
-			testResult.Details = new List<ResultDetails>();
-			foreach (KeyValuePair<int, int> answer in testResultDTO.Answers)
-			{
-				testResult.Details.Add(new ResultDetails { QuestionId = answer.Key, AnswerId = answer.Value });
-			}
-			testResult.Result = СalculateResult(await Get(id), testResultDTO.Answers);
-
-			TestResult savedTestResult = _database.TestResults.Create(testResult);
-			await _database.SaveAsync();
-
-			TestResultDTO returnedTestResult = _mapper.Map<TestResult, TestResultDTO>(savedTestResult);
-
-			foreach (var answer in savedTestResult.Details)
-			{
-				returnedTestResult.Answers[answer.QuestionId] = answer.AnswerId;
-			}
-
-			return returnedTestResult;
-		}
-
 		public async Task<IEnumerable<TestDTO>> GetByName(string name)
 		{
 			if (name == null)
@@ -194,22 +165,7 @@ namespace Quiz.BLL.Services
 			List<TestDTO> returnedTests = _mapper.Map<IEnumerable<Test>, List<TestDTO>>(tests);
 			return returnedTests;
 		}
-
-		private int СalculateResult(TestDTO test, Dictionary<int, int> answers)
-		{
-			int result = 0;
-
-			foreach (var question in test.Questions)
-			{
-				if (answers.ContainsKey(question.Id) &&
-					question.Answers.Where(a => a.IsCorrect).First().Id == answers[question.Id])
-				{
-					result++;
-				}
-			}
-
-			return result;
-		}
+		
 
 		#region Question 
 

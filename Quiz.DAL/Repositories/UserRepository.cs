@@ -1,101 +1,103 @@
-//using Quiz.DAL.Context;
-//using Quiz.DAL.Entities;
-//using Quiz.DAL.Interfaces;
-//using System;
-//using System.Collections.Generic;
-//using System.Linq;
-//using System.Data.Entity;
-//using System.Threading.Tasks;
+using Quiz.DAL.Context;
+using Quiz.DAL.Interfaces;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Data.Entity;
+using System.Threading.Tasks;
+using Quiz.DAL.Entities.User;
 
+namespace Quiz.DAL.Repositories
+{
+	public class UserRepository : IRepository<UserInfo>
+	{
+		private EFContext db;
 
-//namespace Quiz.DAL.Repositories
-//{
-//	public class UserRepository : IRepository<ApplicationUser>
-//	{
-//		private EFContext db;
+		public UserRepository(EFContext context)
+		{
+			db = context ?? throw new ArgumentNullException("Сontext must not be null.");
+		}
 
-//		public UserRepository(EFContext context)
-//		{
-//			db = context ?? throw new ArgumentNullException("Сontext must not be null.");
-//		}
+		public UserInfo Create(UserInfo user)
+		{
+			if (user == null)
+				throw new ArgumentNullException("User must not be null.");
 
-//		public ApplicationUser Create(ApplicationUser user)
-//		{
-//			if (user == null)
-//				throw new ArgumentNullException("User must not be null.");
+			return db.UsersInfo.Add(user);
+		}
 
-//			return db.Users.Add(user);
-//		}
+		public UserInfo Delete(int id)
+		{
+			if (id <= 0)
+				throw new ArgumentException("Incorrect user id.");
 
-//		public ApplicationUser Delete(int id)
-//		{
-//			if (id <= 0)
-//				throw new ArgumentException("Incorrect user id.");
+			UserInfo user = db.UsersInfo.Find(id);
 
-//			ApplicationUser user = db.Users.Find(id);
+			if (user == null) return null;
 
-//			if (user == null) return null;
+			return db.UsersInfo.Remove(user);
+		}
 
-//			return db.Users.Remove(user);
-//		}
+		public IEnumerable<UserInfo> Find(Func<UserInfo, bool> predicate)
+		{
+			if (predicate == null)
+				throw new ArgumentNullException("Predicate must not be null.");
 
-//		public IEnumerable<ApplicationUser> Find(Func<ApplicationUser, bool> predicate)
-//		{
-//			if (predicate == null)
-//				throw new ArgumentNullException("Predicate must not be null.");
+			return db.UsersInfo.Where(predicate).ToList();
+		}
 
-//			return db.Users.Where(predicate).ToList();
-//		}
+		public async Task<IEnumerable<UserInfo>> FindAsync(Func<UserInfo, bool> predicate)
+		{
+			if (predicate == null)
+				throw new ArgumentNullException("Predicate must not be null.");
 
-//		public async Task<IEnumerable<ApplicationUser>> FindAsync(Func<ApplicationUser, bool> predicate)
-//		{
-//			if (predicate == null)
-//				throw new ArgumentNullException("Predicate must not be null.");
+			IEnumerable<UserInfo> users = await db.UsersInfo.ToListAsync();
 
-//			IEnumerable<ApplicationUser> tests = await db.Users.ToListAsync();
+			List<UserInfo> returnerUsers = users.Where(predicate).ToList();
 
-//			List<ApplicationUser> returnerTests = tests.Where(predicate).ToList();
+			return returnerUsers;
+		}
 
-//			return returnerTests;
-//		}
+		public UserInfo Get(int id)
+		{
+			if (id <= 0)
+				throw new ArgumentException("Incorrect user id.");
 
-//		public ApplicationUser Get(int id)
-//		{
-//			if (id <= 0)
-//				throw new ArgumentException("Incorrect user id.");
+			return db.UsersInfo.Find(id);
+		}
 
-//			return db.Users.Find(id);
-//		}
+		public IEnumerable<UserInfo> GetAll()
+		{
+			return db.UsersInfo;
+		}
 
-//		public IEnumerable<ApplicationUser> GetAll()
-//		{
-//			return db.Users;
-//		}
+		public async Task<IEnumerable<UserInfo>> GetAllAsync()
+		{
+			return await db.UsersInfo.ToListAsync();
+		}
 
-//		public async Task<IEnumerable<ApplicationUser>> GetAllAsync()
-//		{
-//			return await db.Users.ToListAsync();
-//		}
+		public async Task<UserInfo> GetAsync(int id)
+		{
+			if (id <= 0)
+				throw new ArgumentException("Incorrect test id.");
 
-//		public Task<ApplicationUser> GetAsync(int id)
-//		{
-//			throw new NotImplementedException();
-//		}
+			return await db.UsersInfo.FindAsync(id);
+		}
 
-//		public ApplicationUser Update(int id, ApplicationUser item)
-//		{
-//			if (item == null)
-//				throw new ArgumentNullException("Item must not be null.");
+		public UserInfo Update(int id, UserInfo item)
+		{
+			if (item == null)
+				throw new ArgumentNullException("Item must not be null.");
 
-//			if (id <= 0)
-//				throw new ArgumentException("Incorrect user id ");
+			if (id <= 0)
+				throw new ArgumentException("Incorrect user id ");
 
-//			ApplicationUser user = db.Users.FirstOrDefault(x => x.Id == item.Id);
-//			if (user == null) return null;
+			UserInfo user = db.UsersInfo.FirstOrDefault(x => x.Id == item.Id);
+			if (user == null) return null;
 
-//			db.Entry(user).CurrentValues.SetValues(item);
+			db.Entry(user).CurrentValues.SetValues(item);
 
-//			return user;
-//		}
-//	}
-//}
+			return user;
+		}
+	}
+}

@@ -1,6 +1,7 @@
 ﻿using Quiz.DAL.Entities;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.EntityFramework;
+using Quiz.DAL.Entities.User;
 
 namespace Quiz.DAL.Identity
 {

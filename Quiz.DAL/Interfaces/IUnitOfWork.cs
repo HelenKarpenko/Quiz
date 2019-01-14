@@ -2,9 +2,8 @@ using Quiz.DAL.Entities;
 using Quiz.DAL.Entities.UserResults;
 using System;
 using System.Threading.Tasks;
-using Microsoft.AspNet.Identity;
-using Quiz.DAL.Repositories;
 using Quiz.DAL.Identity;
+using Quiz.DAL.Entities.User;
 
 namespace Quiz.DAL.Interfaces
 {
@@ -15,6 +14,7 @@ namespace Quiz.DAL.Interfaces
 		IRepository<Answer> Answers { get; }
 		IRepository<ResultDetails> ResultDetails { get; }
 		IRepository<TestResult> TestResults { get; }
+		IRepository<UserInfo> UsersInfo { get; }
 
 		ApplicationUserManager UserManager { get; }
 		ApplicationRoleManager RoleManager { get; }

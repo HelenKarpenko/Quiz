@@ -1,20 +1,27 @@
 ﻿using Quiz.BLL.DTO;
+using Quiz.BLL.DTO.User;
+using Quiz.BLL.DTO.UserResult;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Quiz.BLL.Interfaces
 {
     public interface IUserService
     {
-        UserDTO Create(UserDTO userDTO);
+		Task<UserDTO> GetById(string id);
 
-        UserDTO Get(string id);
+		Task<IEnumerable<UserDTO>> GetAll();
 
-        IEnumerable<UserDTO> GetAll();
+		Task<UserDTO> Delete(string id);
 
-        UserDTO Update(string id, UserDTO userDTO);
+		Task<UserDTO> Update(UserDTO userDTO);
 
-        UserDTO Delete(string id);
+		Task<PagedResultDTO<UserDTO>> GetPaged(string query,
+												int page = 1,
+												int pageSize = 10);
 
-        void Dispose();
+		Task<IEnumerable<TestResultDTO>> GetAllTests(string id);
+
+		void Dispose();
     }
 }

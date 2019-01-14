@@ -267,6 +267,7 @@
     <Compile Include="Controllers\AnswersController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\QuestionsController.cs" />
+    <Compile Include="Controllers\TestResultsController.cs" />
     <Compile Include="Controllers\TestsController.cs" />
     <Compile Include="Controllers\UsersController.cs" />
     <Compile Include="Global.asax.cs">
@@ -291,6 +292,7 @@
     <Compile Include="Utils\JsonCamelCaseResult.cs" />
     <Compile Include="Utils\QuestionModule.cs" />
     <Compile Include="Utils\TestModule.cs" />
+    <Compile Include="Utils\TestResultsModule.cs" />
     <Compile Include="Utils\UserModule.cs" />
   </ItemGroup>
   <ItemGroup>

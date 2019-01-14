@@ -17,7 +17,7 @@ namespace Quiz.DAL.Entities
 
     public virtual ICollection<Question> Questions { get; set; }
 
-    public ICollection<TestResult> TestResults { get; set; }
+    public virtual ICollection<TestResult> TestResults { get; set; }
 
     public Test()
     {

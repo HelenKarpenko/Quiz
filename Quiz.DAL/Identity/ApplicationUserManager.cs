@@ -1,5 +1,6 @@
 ﻿using Quiz.DAL.Entities;
 using Microsoft.AspNet.Identity;
+using Quiz.DAL.Entities.User;
 
 namespace Quiz.DAL.Identity
 {

@@ -72,6 +72,7 @@ namespace Quiz.Web.API.App_Start
             kernel.Load(new QuestionModule());
             kernel.Load(new AnswerModule());
             kernel.Load(new UserModule());
+			kernel.Load(new TestResultsModule());
         }
     }
 }

@@ -163,35 +163,41 @@ namespace Quiz.Web.API.Controllers
 			}
 		}
 
-		[Authorize(Roles = "user")]
-		[HttpPost]
-		[Route("api/tests/{testId}/results")]
-		public async Task<IHttpActionResult> SaveResult(int testId, TestResultModel result)
+		//[Authorize(Roles = "user")]
+		//[HttpPost]
+		//[Route("api/tests/{testId}/results")]
+		//public async Task<IHttpActionResult> SaveResult(int testId, TestResultModel result)
+		//{
+		//	if (testId <= 0)
+		//		return BadRequest("Incorrect test id.");
+		//	if (result == null)
+		//		return BadRequest("Test result must not be null.");
+
+		//	try
+		//	{
+		//		result.TestId = testId;
+		//		result.UserId = User.Identity.GetUserId();
+		//		result.PassageDate = DateTime.Now;
+
+		//		TestResultDTO resultDTO = _mapper.Map<TestResultModel, TestResultDTO>(result);
+		//		TestResultDTO savedResult = await _testService.SaveResult(testId, resultDTO);
+		//		TestResultModel returnedResult = _mapper.Map<TestResultDTO, TestResultModel>(savedResult);
+		//		return Ok(returnedResult);
+		//	}
+		//	catch (EntityNotFoundException)
+		//	{
+		//		return NotFound();
+		//	}
+		//	catch (Exception ex)
+		//	{
+		//		return BadRequest(ex.Message);
+		//	}
+		//}
+
+		protected override void Dispose(bool disposing)
 		{
-			if (testId <= 0)
-				return BadRequest("Incorrect test id.");
-			if (result == null)
-				return BadRequest("Test result must not be null.");
-
-			try
-			{
-				result.TestId = testId;
-				result.UserId = User.Identity.GetUserId();
-				result.PassageDate = DateTime.Now;
-
-				TestResultDTO resultDTO = _mapper.Map<TestResultModel, TestResultDTO>(result);
-				TestResultDTO savedResult = await _testService.SaveResult(testId, resultDTO);
-				TestResultModel returnedResult = _mapper.Map<TestResultDTO, TestResultModel>(savedResult);
-				return Ok(returnedResult);
-			}
-			catch (EntityNotFoundException)
-			{
-				return NotFound();
-			}
-			catch (Exception ex)
-			{
-				return BadRequest(ex.Message);
-			}
+			_testService.Dispose();
+			base.Dispose(disposing);
 		}
 
 		//#region Question

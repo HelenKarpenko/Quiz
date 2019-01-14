@@ -65,12 +65,13 @@
   <ItemGroup>
     <Compile Include="Context\EFContext.cs" />
     <Compile Include="Entities\Answer.cs" />
-    <Compile Include="Entities\ApplicationRole.cs" />
-    <Compile Include="Entities\ApplicationUser.cs" />
+    <Compile Include="Entities\User\ApplicationRole.cs" />
+    <Compile Include="Entities\User\ApplicationUser.cs" />
     <Compile Include="Entities\Question.cs" />
     <Compile Include="Entities\Test.cs" />
     <Compile Include="Entities\UserResults\ResultDetails.cs" />
     <Compile Include="Entities\UserResults\TestResult.cs" />
+    <Compile Include="Entities\User\UserInfo.cs" />
     <Compile Include="Interfaces\IRepository.cs" />
     <Compile Include="Interfaces\IUnitOfWork.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
