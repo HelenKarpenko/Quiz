@@ -75,10 +75,9 @@ namespace Quiz.DAL.Context
 			  .WillCascadeOnDelete(false);
 
 			modelBuilder.Entity<Answer>()
-			  .HasMany(a => a.ResultDetails)
-			  .WithRequired(d => d.Answer)
-			  .HasForeignKey(d => d.AnswerId)
-			  .WillCascadeOnDelete(false);
+				  .HasMany(a => a.ResultDetails)
+				  .WithOptional(d => d.Answer)
+				  .HasForeignKey(d => d.AnswerId);
 
 			#endregion
 

@@ -195,7 +195,7 @@ namespace Quiz.Web.API.Controllers
 				return BadRequest(ex.Message);
 			}
 		}
-		
+
 		[Authorize(Roles = "user")]
 		[HttpGet]
 		[Route("api/tests/{testId}/questions/{questionId}")]

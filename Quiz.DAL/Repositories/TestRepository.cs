@@ -55,7 +55,7 @@ namespace Quiz.DAL.Repositories
 		
 		public IQueryable<Test> GetAll()
 		{
-			return db.Tests.Include(t => t.Questions);
+			return db.Tests;
 		}
 		
 		public Test Update(int id, Test item)
