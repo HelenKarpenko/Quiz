@@ -1,54 +1,55 @@
 using Quiz.BLL.DTO;
-using Quiz.BLL.DTO.UserResult;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Quiz.BLL.Interfaces
 {
-  public interface ITestService
-  {
-    #region Test
+	public interface ITestService
+	{
+		#region Test
 
-    Task<TestDTO> Create(TestDTO test);
+		Task<TestDTO> Create(TestDTO test);
 
-    Task<TestDTO> Get(int id);
+		TestDTO Get(int id);
 
-    Task<IEnumerable<TestDTO>> GetAll();
+		IEnumerable<TestDTO> GetAll();
 
-    Task<PagedResultDTO<TestDTO>> GetPaged(int page = 1, int pageSize = 10);
+		PagedResultDTO<TestDTO> GetPaged(string query, int page = 1, int pageSize = 10);
 
-    Task<TestDTO> Update(int id, TestDTO test);
+		Task<TestDTO> Update(TestDTO test);
 
-    Task<TestDTO> Delete(int id);
+		Task<TestDTO> Delete(int id);
 
-    Task<TestResultDTO> SaveResult(int id, TestResultDTO testResultDTO);
+		void Dispose();
 
-    void Dispose();
+		#endregion
 
-    #endregion
+		#region Question
 
-    //TestDTO AddQuestion(int testId, QuestionDTO questionDTO);
+		Task<QuestionDTO> AddQuestion(QuestionDTO questionDTO);
 
-    //TestDTO DeleteQuestion(int testId, int questionId);
+		Task<QuestionDTO> DeleteQuestion(int testId, int questionId);
 
-    //QuestionDTO GetQuestion(int testId, int questionId);
+		QuestionDTO GetQuestion(int testId, int questionId);
 
-    //IEnumerable<QuestionDTO> GetAllQuestions(int testId);
+		IEnumerable<QuestionDTO> GetAllQuestions(int testId);
 
-    //TestDTO UpdateQuestion(int testId, int questionId, QuestionDTO questionDTO);
+		Task<QuestionDTO> UpdateQuestion(QuestionDTO questionDTO);
 
-    //#region Answer
+		#endregion
 
-    //TestDTO AddAnswerToQuestion(int testId, int questionId, AnswerDTO answerDTO);
+		#region Answer
 
-    //TestDTO DeleteAnswerFromQuestion(int testId, int questionId, int answerId);
+		Task<AnswerDTO> AddAnswerToQuestion(AnswerDTO answerDTO);
 
-    //AnswerDTO GetAnswerFromQuestion(int testId, int questionId, int answerId);
+		Task<AnswerDTO> DeleteAnswerFromQuestion(int testId, int questionId, int answerId);
 
-    //IEnumerable<AnswerDTO> GetAllAnswersFromQuestion(int testId, int questionId);
+		AnswerDTO GetAnswerFromQuestion(int testId, int questionId, int answerId);
 
-    //TestDTO UpdateAnswerFromQuestion(int testId, int questionId, int answerId, AnswerDTO answerDTO);
+		IEnumerable<AnswerDTO> GetAllAnswersFromQuestion(int testId, int questionId);
 
-    //#endregion
-  }
+		Task<AnswerDTO> UpdateAnswerFromQuestion(AnswerDTO answerDTO);
+
+		#endregion
+	}
 }

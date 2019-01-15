@@ -8,7 +8,7 @@ namespace Quiz.Web.API.Utils
     {
         public override void Load()
         {
-            //Bind<IUserService>().To<UserService>();
-        }
+			Bind<IUserService>().To<UserService>();
+		}
     }
 }

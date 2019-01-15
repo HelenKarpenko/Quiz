@@ -1,27 +1,21 @@
 using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+using System.Linq;
+using System.Linq.Expressions;
 
 namespace Quiz.DAL.Interfaces
 {
-  public interface IRepository<T> where T : class
-  {
-    IEnumerable<T> GetAll();
+	public interface IRepository<T> where T : class
+	{
+		IQueryable<T> GetAll();
+		
+		T Get(int id);
 
-    Task<IEnumerable<T>> GetAllAsync();
+		IQueryable<T> Find(Expression<Func<T, bool>> predicate);
+		
+		T Create(T item);
 
-    T Get(int id);
+		T Update(int id, T item);
 
-    Task<T> GetAsync(int id);
-
-    IEnumerable<T> Find(Func<T, bool> predicate);
-
-    Task<IEnumerable<T>> FindAsync(Func<T, bool> predicate);
-
-    T Create(T item);
-
-    T Update(int id, T item);
-
-    T Delete(int id);
-  }
+		T Delete(int id);
+	}
 }

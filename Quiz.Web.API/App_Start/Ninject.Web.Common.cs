@@ -69,9 +69,8 @@ namespace Quiz.Web.API.App_Start
             string connString = ConfigurationManager.ConnectionStrings["DefaultConnection"].ConnectionString;
             kernel.Load(new ServiceModule(connString));
             kernel.Load(new TestModule());
-            kernel.Load(new QuestionModule());
-            kernel.Load(new AnswerModule());
             kernel.Load(new UserModule());
+			kernel.Load(new TestResultsModule());
         }
     }
 }

@@ -1,117 +1,192 @@
-//using AutoMapper;
-//using Quiz.BLL.DTO;
-//using Quiz.BLL.Exceptions;
-//using Quiz.BLL.Interfaces;
-//using Quiz.DAL.Entities;
-//using Quiz.DAL.Interfaces;
-//using System;
-//using System.Collections.Generic;
-//using System.Linq;
+using AutoMapper;
+using Quiz.BLL.DTO;
+using Quiz.BLL.DTO.User;
+using Quiz.BLL.DTO.UserResult;
+using Quiz.BLL.Exceptions;
+using Quiz.BLL.Interfaces;
+using Quiz.DAL.Entities;
+using Quiz.DAL.Entities.User;
+using Quiz.DAL.Entities.UserResults;
+using Quiz.DAL.Interfaces;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
-//namespace Quiz.BLL.Services
-//{
-//    public class UserService : IUserService
-//    {
-//        private readonly IUnitOfWork _database;
+namespace Quiz.BLL.Services
+{
+	public class UserService : IUserService
+	{
+		private readonly IUnitOfWork _database;
 
-//        private IMapper _mapper;
+		private IMapper _mapper;
 
-//        public UserService(IUnitOfWork uow)
-//        {
-//            _database = uow ?? throw new ArgumentNullException("UnitOfWork must not be null.");
+		public UserService(IUnitOfWork uow)
+		{
+			_database = uow ?? throw new ArgumentNullException("UnitOfWork must not be null.");
 
-//            _mapper = new MapperConfiguration(cfg =>
-//            {
-//                cfg.CreateMap<User, UserDTO>();
-//                cfg.CreateMap<UserDTO, User>();
-//            })
-//            .CreateMapper();
-//        }
+			_mapper = new MapperConfiguration(cfg =>
+			{
+				cfg.CreateMap<ApplicationUser, UserDTO>();
+				cfg.CreateMap<UserDTO, ApplicationUser>();
+				cfg.CreateMap<Test, TestDTO>();
+				cfg.CreateMap<TestResult, TestResultDTO>()
+					.ForMember(rDTO => rDTO.MaxResult, map => map.MapFrom(r => r.Test.Questions.Count));
+				cfg.CreateMap<TestResultDTO, TestResult>();
+				cfg.CreateMap<ResultDetails, ResultDetailsDTO>();
+				cfg.CreateMap<ResultDetailsDTO, ResultDetails>();
+			})
+			.CreateMapper();
+		}
 
-//        public UserDTO Create(UserDTO userDTO)
-//        {
-//            if (userDTO == null)
-//                throw new ArgumentNullException("UserDTO must not be null.");
+		public async Task<UserDTO> GetById(string id)
+		{
+			if (id == null)
+				throw new ArgumentNullException("Id must not be null.");
 
-//            User user = _mapper.Map<UserDTO, User>(userDTO);
+			ApplicationUser user = await _database.UserManager.FindByIdAsync(id);
+			if (user == null)
+				throw new EntityNotFoundException();
 
-//            User createdUser = _database.Users.Create(user);
+			var roles = await GetRoles(id);
 
-//            _database.Save();
+			UserDTO returnedUser = _mapper.Map<ApplicationUser, UserDTO>(user);
 
-//            UserDTO returnedUser = _mapper.Map<User, UserDTO>(createdUser);
+			returnedUser.Roles = roles.ToList();
+			if (user.UserInfo == null)
+				returnedUser.Name = user.UserInfo.Name;
 
-//            return returnedUser;
-//        }
+			return returnedUser;
+		}
 
-//        public UserDTO Delete(int id)
-//        {
-//            if (id <= 0)
-//                throw new ArgumentException("Incorrect userDTO id.");
+		public async Task<IEnumerable<UserDTO>> GetAll()
+		{
+			IEnumerable<ApplicationUser> users = _database.UserManager.Users.ToList();
 
-//            User deletedUser = _database.Users.Delete(id);
+			List<UserDTO> returnedUsers = _mapper.Map<IEnumerable<ApplicationUser>, List<UserDTO>>(users);
 
-//            if (deletedUser == null)
-//                throw new EntityNotFoundException($"User with id = {id} not found.");
+			foreach (var user in returnedUsers)
+			{
+				var roles = await GetRoles(user.Id);
+				user.Roles = roles.ToList();
+			}
 
-//            _database.Save();
+			return returnedUsers;
+		}
 
-//            UserDTO returnedUser = _mapper.Map<User, UserDTO>(deletedUser);
+		public async Task<PagedResultDTO<UserDTO>> GetPaged(
+															string query,
+															int page = 1,
+															int pageSize = 10)
+		{
+			if (query == null)
+				throw new ArgumentNullException("Name must not be null.");
+			if (page <= 0)
+				throw new ArgumentException("Page must be greater than zero.");
+			if (pageSize <= 0)
+				throw new ArgumentException("Page size must be greater than zero.");
 
-//            return returnedUser;
-//        }
+			IQueryable<ApplicationUser> users = _database.UserManager.Users;
 
-//        public void Dispose()
-//        {
-//            _database.Dispose();
-//        }
+			if (!string.IsNullOrEmpty(query))
+			{
+				users = users.Where(u => u.UserName.ToLower().Contains(query.ToLower()) || u.Email.ToLower().Contains(query.ToLower()));
+			}
+			
+			int skip = pageSize * (page - 1);
+			int total = users.Count();
 
-//        public UserDTO Get(int id)
-//        {
-//            if (id <= 0)
-//                throw new ArgumentException("Incorrect userDTO id.");
+			List<ApplicationUser> result = users
+				.OrderBy(t => t.Id)
+				.Skip(skip)
+				.Take(pageSize)
+				.ToList();
 
-//            User user = _database.Users.Get(id);
+			List<UserDTO> returnedUsers = _mapper.Map<IEnumerable<ApplicationUser>, List<UserDTO>>(result);
 
-//            if (user == null)
-//                throw new EntityNotFoundException($"User with id = {id} not found.");
+			foreach (var user in returnedUsers)
+			{
+				var roles = await GetRoles(user.Id);
+				user.Roles = roles.ToList();
+			}
 
-//            UserDTO returnedUser = _mapper.Map<User, UserDTO>(user);
+			return new PagedResultDTO<UserDTO>(returnedUsers, page, pageSize, total);
+		}
 
-//            return returnedUser;
-//        }
+		public async Task<IEnumerable<string>> GetRoles(string id)
+		{
+			if (id == null)
+				throw new ArgumentNullException("Incorrect user id.");
 
-//        public IEnumerable<UserDTO> GetAll()
-//        {
-//            List<User> users = _database.Users.GetAll().ToList();
+			return await _database.UserManager.GetRolesAsync(id);
+		}
 
-//            List<UserDTO> returnedUsers = _mapper.Map<List<User>, List<UserDTO>>(users);
+		public async Task<UserDTO> Delete(string id)
+		{
+			if (id == null)
+				throw new ArgumentException("Incorrect userDTO id.");
 
-//            return returnedUsers;
-//        }
+			ApplicationUser user = await _database.UserManager.FindByIdAsync(id);
+			if (user == null)
+				throw new EntityNotFoundException();
 
-//        public UserDTO Update(int id, UserDTO userDTO)
-//        {
-//            if (userDTO == null)
-//                throw new ArgumentNullException("UserDTO must not by null.");
+			var roles = await GetRoles(id);
 
-//            if (id <= 0)
-//                throw new ArgumentException("Incorrect user id.");
+			UserDTO returnedUser = _mapper.Map<ApplicationUser, UserDTO>(user);
 
-//            userDTO.Id = id;
+			var result = await _database.UserManager.DeleteAsync(user);
+			if (!result.Succeeded)
+				throw new EntityNotFoundException();
 
-//            User user = _mapper.Map<UserDTO, User>(userDTO);
+			returnedUser.Roles = roles.ToList();
 
-//            User updatedUser = _database.Users.Update(id, user);
+			return returnedUser;
+		}
 
-//            if (updatedUser == null)
-//                throw new EntityNotFoundException($"User with id = {id} not found.");
+		public async Task<UserDTO> Update(UserDTO userDTO)
+		{
+			if (userDTO == null)
+				throw new ArgumentNullException("UserDTO must not by null.");
+			
+			ApplicationUser user = await _database.UserManager.FindByIdAsync(userDTO.Id);
+			if (user == null)
+				throw new EntityNotFoundException();
 
-//            _database.Save();
+			var info = user.UserInfo;
+			if (info == null)
+				user.UserInfo = new UserInfo();
 
-//            UserDTO returnedUser = _mapper.Map<User, UserDTO>(updatedUser);
+			user.UserInfo.Name = userDTO.Name;
 
-//            return returnedUser;
-//        }
-//    }
-//}
+			var result = await _database.UserManager.UpdateAsync(user);
+			if (!result.Succeeded)
+				throw new EntityNotFoundException();
+
+			var roles = await GetRoles(user.Id);
+
+			UserDTO returnedUser = _mapper.Map<ApplicationUser, UserDTO>(user);
+
+			returnedUser.Roles = roles.ToList();
+			returnedUser.Name = user.UserInfo.Name;
+
+			return returnedUser;
+		}
+
+		public IEnumerable<TestResultDTO> GetAllTests(string id)
+		{
+			if (id == null)
+				throw new ArgumentNullException("Id must not be null.");
+
+			IEnumerable<TestResult> results = _database.TestResults.Find(x => x.UserId == id).ToList();
+
+			List<TestResultDTO> resultsDTO = _mapper.Map<IEnumerable<TestResult>, List<TestResultDTO>>(results);
+			
+			return resultsDTO;
+		}
+		
+		public void Dispose()
+		{
+			_database.Dispose();
+		}
+	}
+}

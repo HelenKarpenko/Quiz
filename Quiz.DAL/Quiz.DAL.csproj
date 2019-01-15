@@ -65,17 +65,19 @@
   <ItemGroup>
     <Compile Include="Context\EFContext.cs" />
     <Compile Include="Entities\Answer.cs" />
-    <Compile Include="Entities\ApplicationRole.cs" />
-    <Compile Include="Entities\ApplicationUser.cs" />
+    <Compile Include="Entities\User\ApplicationRole.cs" />
+    <Compile Include="Entities\User\ApplicationUser.cs" />
     <Compile Include="Entities\Question.cs" />
     <Compile Include="Entities\Test.cs" />
     <Compile Include="Entities\UserResults\ResultDetails.cs" />
     <Compile Include="Entities\UserResults\TestResult.cs" />
+    <Compile Include="Entities\User\UserInfo.cs" />
     <Compile Include="Interfaces\IRepository.cs" />
     <Compile Include="Interfaces\IUnitOfWork.cs" />
-    <Compile Include="Interfaces\IUserTestRepository.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Repositories\AnswerRepository.cs" />
+    <Compile Include="Identity\ApplicationRoleManager.cs" />
+    <Compile Include="Identity\ApplicationUserManager.cs" />
     <Compile Include="Repositories\QuestionRepository.cs" />
     <Compile Include="Repositories\ResultDetailsRepository.cs" />
     <Compile Include="Repositories\TestRepository.cs" />
@@ -87,5 +89,6 @@
     <None Include="App.config" />
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

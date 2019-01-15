@@ -1,146 +1,195 @@
 using AutoMapper;
+using Microsoft.AspNet.Identity;
 using Quiz.BLL.DTO;
+using Quiz.BLL.DTO.User;
+using Quiz.BLL.DTO.UserResult;
 using Quiz.BLL.Exceptions;
 using Quiz.BLL.Interfaces;
 using Quiz.Web.API.Models;
+using Quiz.Web.API.Models.UserResult;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Net.Http;
+using System.Threading.Tasks;
 using System.Web.Http;
+
 
 namespace Quiz.Web.API.Controllers
 {
-  public class UsersController : ApiController
-  {
-    private readonly IUserService _userService;
+	[Authorize(Roles = "admin")]
+	public class UsersController : ApiController
+	{
+		private readonly IUserService _userService;
 
-    private IMapper _mapper;
+		private IMapper _mapper;
 
-    public UsersController(IUserService service)
-    {
-      _userService = service ?? throw new ArgumentNullException("Service must not be null.");
+		public UsersController(IUserService service)
+		{
+			_userService = service ?? throw new ArgumentNullException("Service must not be null.");
 
-      _mapper = new MapperConfiguration(cfg =>
-      {
-        cfg.CreateMap<UserModel, UserDTO>();
-        cfg.CreateMap<UserDTO, UserModel>();
-      })
-      .CreateMapper();
-    }
+			_mapper = new MapperConfiguration(cfg =>
+			{
+				cfg.CreateMap<UserModel, UserDTO>();
+				cfg.CreateMap<UserDTO, UserModel>();
+				cfg.CreateMap<PagedResultDTO<UserDTO>.PagingInfo, PagedResultModel<UserModel>.PagingInfo>();
+				cfg.CreateMap<PagedResultDTO<UserDTO>, PagedResultModel<UserModel>>();
+				cfg.CreateMap<ResultDetailsModel, ResultDetailsDTO>();
+				cfg.CreateMap<ResultDetailsDTO, ResultDetailsModel>();
+				cfg.CreateMap<TestResultModel, TestResultDTO>();
+				cfg.CreateMap<TestResultDTO, TestResultModel>();
+				cfg.CreateMap<TestModel, TestDTO>();
+				cfg.CreateMap<TestDTO, TestModel>();
+			})
+			.CreateMapper();
+		}
+		
+		[HttpGet]
+		public async Task<IHttpActionResult> GetById(string id)
+		{
+			if (id == null)
+				return BadRequest("Incorrect user id.");
 
-    [HttpPost]
-    public IHttpActionResult Create(UserModel user)
-    {
-      if (user == null)
-        return BadRequest("User must not be null.");
+			try
+			{
+				UserDTO userDTO = await _userService.GetById(id);
 
-      try
-      {
-        UserDTO userDTO = _mapper.Map<UserModel, UserDTO>(user);
+				UserModel returnedUser = _mapper.Map<UserDTO, UserModel>(userDTO);
 
-        UserDTO createdUser = _userService.Create(userDTO);
+				return Ok(returnedUser);
+			}
+			catch (EntityNotFoundException)
+			{
+				return NotFound();
+			}
+			catch (Exception ex)
+			{
+				return BadRequest(ex.Message);
+			}
+		}
+	
+		[HttpGet]
+		public async Task<IHttpActionResult> Get(
+												 string query = "",
+												 int page = 1,
+												 int pageSize = 10)
+		{
 
-        UserModel returnedUser = _mapper.Map<UserDTO, UserModel>(createdUser);
+			string searchQuery = String.IsNullOrEmpty(query) ? "" : query;
 
-        string createdAtUrl = "http://www.google.com";
+			page = page > 0 ? page : 1;
+			pageSize = pageSize > 0 ? pageSize : 10;
 
-        return Created(createdAtUrl, returnedUser);
-      }
-      catch (EntityNotFoundException)
-      {
-        return NotFound();
-      }
-      catch (Exception ex)
-      {
-        return BadRequest(ex.Message);
-      }
-    }
+			PagedResultDTO<UserDTO> pagedResultDTO = await _userService.GetPaged(searchQuery, page, pageSize);
 
-    [HttpGet]
-    public IHttpActionResult GetById(int id)
-    {
-      if (id <= 0)
-        return BadRequest("Incorrect user id.");
+			PagedResultModel<UserModel> pagedResult = _mapper.Map<PagedResultDTO<UserDTO>, PagedResultModel<UserModel>>(pagedResultDTO);
 
-      try
-      {
-        UserDTO userDTO = _userService.Get(id);
+			return Ok(pagedResult);
+		}
 
-        UserModel returnedUser = _mapper.Map<UserDTO, UserModel>(userDTO);
+		[HttpDelete]
+		public async Task<IHttpActionResult> DeleteById(string id)
+		{
+			if (id == null)
+				return BadRequest("Incorrect user id.");
 
-        return Ok(returnedUser);
-      }
-      catch (EntityNotFoundException)
-      {
-        return NotFound();
-      }
-      catch (Exception ex)
-      {
-        return BadRequest(ex.Message);
-      }
-    }
+			try
+			{
+				UserDTO userDTO = await _userService.Delete(id);
 
-    [Authorize]
-    [HttpGet]
-    public IHttpActionResult GetAll()
-    {
-      List<UserDTO> users = _userService.GetAll().ToList();
+				UserModel returnedUser = _mapper.Map<UserDTO, UserModel>(userDTO);
 
-      List<UserModel> retunedUsers = _mapper.Map<IEnumerable<UserDTO>, List<UserModel>>(users);
+				return Ok(returnedUser);
+			}
+			catch (EntityNotFoundException)
+			{
+				return NotFound();
+			}
+			catch (Exception ex)
+			{
+				return BadRequest(ex.Message);
+			}
+		}
 
-      return Ok(retunedUsers);
-    }
+		[HttpPut]
+		public async Task<IHttpActionResult> UpdateById(string id, UserModel user)
+		{
+			if (id == null)
+				return BadRequest("Incorrect user id.");
+			if (user == null)
+				return BadRequest("User must not be null.");
 
-    [HttpDelete]
-    public IHttpActionResult DeleteById(int id)
-    {
-      if (id <= 0)
-        return BadRequest("Incorrect user id.");
+			try
+			{
+				user.Id = id;
 
-      try
-      {
-        UserDTO userDTO = _userService.Delete(id);
+				UserDTO userDTO = _mapper.Map<UserModel, UserDTO>(user);
 
-        UserModel returnedUser = _mapper.Map<UserDTO, UserModel>(userDTO);
+				UserDTO updatedUser = await _userService.Update(userDTO);
 
-        return Ok(returnedUser);
-      }
-      catch (EntityNotFoundException)
-      {
-        return NotFound();
-      }
-      catch (Exception ex)
-      {
-        return BadRequest(ex.Message);
-      }
-    }
+				UserModel returnedUser = _mapper.Map<UserDTO, UserModel>(updatedUser);
 
-    [HttpPut]
-    public IHttpActionResult UpdateById(int id, UserModel user)
-    {
-      if (user == null)
-        return BadRequest("User must not be null.");
+				return Ok(returnedUser);
+			}
+			catch (EntityNotFoundException)
+			{
+				return NotFound();
+			}
+			catch (Exception ex)
+			{
+				return BadRequest(ex.Message);
+			}
+		}
 
-      try
-      {
-        UserDTO userDTO = _mapper.Map<UserModel, UserDTO>(user);
+		[HttpGet]
+		[Route("api/users/currentUser")]
+		public async Task<IHttpActionResult> GetCurrentUser()
+		{
+			try
+			{
+				UserDTO userDTO = await _userService.GetById(User.Identity.GetUserId());
 
-        UserDTO updatedUser = _userService.Update(id, userDTO);
+				UserModel returnedUser = _mapper.Map<UserDTO, UserModel>(userDTO);
 
-        UserModel returnedUser = _mapper.Map<UserDTO, UserModel>(updatedUser);
+				return Ok(returnedUser);
+			}
+			catch (EntityNotFoundException)
+			{
+				return NotFound();
+			}
+			catch (Exception ex)
+			{
+				return BadRequest(ex.Message);
+			}
+		}
 
-        return Ok(returnedUser);
-      }
-      catch (EntityNotFoundException)
-      {
-        return NotFound();
-      }
-      catch (Exception ex)
-      {
-        return BadRequest(ex.Message);
-      }
-    }
-  }
+		[HttpGet]
+		[Route("api/users/{userId}/results")]
+		public IHttpActionResult GetUserTestResults(string userId)
+		{
+			if (userId == null)
+				return BadRequest("Incorrect user id.");
+
+			try
+			{
+				IEnumerable<TestResultDTO> resultsDTO = _userService.GetAllTests(userId);
+
+				List<TestResultModel> results = _mapper.Map<IEnumerable<TestResultDTO>, List<TestResultModel>>(resultsDTO);
+
+				return Ok(results);
+			}
+			catch (EntityNotFoundException)
+			{
+				return NotFound();
+			}
+			catch (Exception ex)
+			{
+				return BadRequest(ex.Message);
+			}
+		}
+
+		protected override void Dispose(bool disposing)
+		{
+			_userService.Dispose();
+			base.Dispose(disposing);
+		}
+	}
 }
