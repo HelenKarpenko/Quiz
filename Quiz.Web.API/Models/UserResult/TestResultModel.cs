@@ -16,8 +16,7 @@ namespace Quiz.Web.API.Models.UserResult
 		public string UserId { get; set; }
 
 		public DateTime PassageDate { get; set; }
-
-		//public Dictionary<int, int> Answers { get; set; }
+		
 		public virtual ICollection<ResultDetailsModel> Details { get; set; }
 
 		public int Result { get; set; }
@@ -27,7 +26,6 @@ namespace Quiz.Web.API.Models.UserResult
 		public TestResultModel()
 		{
 			Details = new HashSet<ResultDetailsModel>();
-			//Answers = new Dictionary<int, int>();
 		}
 	}
 }

@@ -9,16 +9,13 @@ using Quiz.Web.API.Models;
 using Quiz.Web.API.Models.UserResult;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Web.Http;
 
 
 namespace Quiz.Web.API.Controllers
 {
+	[Authorize(Roles = "admin")]
 	public class UsersController : ApiController
 	{
 		private readonly IUserService _userService;
@@ -44,35 +41,7 @@ namespace Quiz.Web.API.Controllers
 			})
 			.CreateMapper();
 		}
-
-		//[HttpPost]
-		//public IHttpActionResult Create(UserModel user)
-		//{
-		//	if (user == null)
-		//		return BadRequest("User must not be null.");
-
-		//	try
-		//	{
-		//		UserDTO userDTO = _mapper.Map<UserModel, UserDTO>(user);
-
-		//		UserDTO createdUser = _userService.Create(userDTO);
-
-		//		UserModel returnedUser = _mapper.Map<UserDTO, UserModel>(createdUser);
-
-		//		string createdAtUrl = "http://www.google.com";
-
-		//		return Created(createdAtUrl, returnedUser);
-		//	}
-		//	catch (EntityNotFoundException)
-		//	{
-		//		return NotFound();
-		//	}
-		//	catch (Exception ex)
-		//	{
-		//		return BadRequest(ex.Message);
-		//	}
-		//}
-
+		
 		[HttpGet]
 		public async Task<IHttpActionResult> GetById(string id)
 		{
@@ -97,18 +66,6 @@ namespace Quiz.Web.API.Controllers
 			}
 		}
 	
-		//[HttpGet]
-		//public async Task<IHttpActionResult> GetAll()
-		//{
-		//	var data = await _userService.GetAll();
-
-		//	List<UserDTO> users = data.ToList();
-
-		//	List<UserModel> retunedUsers = _mapper.Map<IEnumerable<UserDTO>, List<UserModel>>(users);
-
-		//	return Ok(retunedUsers);
-		//}
-		
 		[HttpGet]
 		public async Task<IHttpActionResult> Get(
 												 string query = "",
@@ -206,14 +163,14 @@ namespace Quiz.Web.API.Controllers
 
 		[HttpGet]
 		[Route("api/users/{userId}/results")]
-		public async Task<IHttpActionResult> GetUserTestResults(string userId)
+		public IHttpActionResult GetUserTestResults(string userId)
 		{
 			if (userId == null)
 				return BadRequest("Incorrect user id.");
 
 			try
 			{
-				IEnumerable<TestResultDTO> resultsDTO = await _userService.GetAllTests(userId);
+				IEnumerable<TestResultDTO> resultsDTO = _userService.GetAllTests(userId);
 
 				List<TestResultModel> results = _mapper.Map<IEnumerable<TestResultDTO>, List<TestResultModel>>(resultsDTO);
 

@@ -83,7 +83,7 @@ namespace Quiz.DAL.Context
 			#endregion
 
 			modelBuilder.Entity <ApplicationUser>()
-				.HasOptional(u => u.UserInfo) // Mark Address property optional in Student entity
+				.HasOptional(u => u.UserInfo)
 				.WithRequired(ui => ui.ApplicationUser);
 		}
 	}
@@ -125,37 +125,7 @@ namespace Quiz.DAL.Context
 			}
 
 			base.Seed(db);
-
-			//db.Tests.Add(new Test { Name = "Vegetables" });
-			//db.Questions.Add(new Question
-			//{
-			//    Name = "Сucumber",
-			//    Text = "What color is cucumber?",
-			//    Type = QuestionType.Single,
-
-			//    TestId = 1
-			//});
-			//db.Answers.Add(new Answer
-			//{
-			//    Text = "Green",
-			//    QuestionId = 1
-			//});
-			//db.Answers.Add(new Answer
-			//{
-			//    Text = "Red",
-			//    QuestionId = 1
-			//});
-			//db.Answers.Add(new Answer
-			//{
-			//    Text = "Blue",
-			//    QuestionId = 1
-			//});
-			//db.Questions.
-
-
-
-			//db.Tests.Add(new Test { Name = "Fruits" });
-
+			
 			db.SaveChanges();
 		}
 	}

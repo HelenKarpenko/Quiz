@@ -2,10 +2,9 @@ using Quiz.DAL.Context;
 using Quiz.DAL.Entities;
 using Quiz.DAL.Interfaces;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Data.Entity;
-using System.Threading.Tasks;
+using System.Linq.Expressions;
 
 namespace Quiz.DAL.Repositories
 {
@@ -38,34 +37,14 @@ namespace Quiz.DAL.Repositories
 			return db.Tests.Remove(test);
 		}
 
-		public async Task<IEnumerable<Test>> FindAsync(Func<Test, bool> predicate)
-		{
-			if (predicate == null)
-				throw new ArgumentNullException("Predicate must not be null.");
-
-			IEnumerable<Test> tests = await db.Tests.ToListAsync();
-
-			List<Test> returnerTests = tests.Where(predicate).ToList();
-
-			return returnerTests;
-		}
-
-		public IEnumerable<Test> Find(Func<Test, bool> predicate)
+		public IQueryable<Test> Find(Expression<Func<Test, bool>> predicate)
 		{
 			if (predicate == null)
 				throw new ArgumentNullException("Predicate must not be null.");
 
 			return db.Tests.Where(predicate);
 		}
-
-		public async Task<Test> GetAsync(int id)
-		{
-			if (id <= 0)
-				throw new ArgumentException("Incorrect test id.");
-
-			return await db.Tests.FindAsync(id);
-		}
-
+		
 		public Test Get(int id)
 		{
 			if (id <= 0)
@@ -73,17 +52,12 @@ namespace Quiz.DAL.Repositories
 
 			return db.Tests.Find(id);
 		}
-
-		public async Task<IEnumerable<Test>> GetAllAsync()
+		
+		public IQueryable<Test> GetAll()
 		{
-			return await db.Tests.Include(t => t.Questions).ToListAsync();
+			return db.Tests.Include(t => t.Questions);
 		}
-
-		public IEnumerable<Test> GetAll()
-		{
-			return db.Tests.Include(t => t.Questions).ToList();
-		}
-
+		
 		public Test Update(int id, Test item)
 		{
 			if (item == null)

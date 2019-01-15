@@ -4,14 +4,10 @@ using Quiz.BLL.Exceptions;
 using Quiz.BLL.Interfaces;
 using Quiz.Web.API.Models;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Http;
-using System.Web.Http.Cors;
-using Microsoft.AspNet.Identity;
-using Quiz.Web.API.Models.UserResult;
-using Quiz.BLL.DTO.UserResult;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Quiz.Web.API.Controllers
 {
@@ -32,10 +28,6 @@ namespace Quiz.Web.API.Controllers
 				cfg.CreateMap<TestDTO, TestModel>();
 				cfg.CreateMap<PagedResultDTO<TestDTO>.PagingInfo, PagedResultModel<TestModel>.PagingInfo>();
 				cfg.CreateMap<PagedResultDTO<TestDTO>, PagedResultModel<TestModel>>();
-				cfg.CreateMap<ResultDetailsModel, ResultDetailsDTO>();
-				cfg.CreateMap<ResultDetailsDTO, ResultDetailsModel>();
-				cfg.CreateMap<TestResultModel, TestResultDTO>();
-				cfg.CreateMap<TestResultDTO, TestResultModel>();
 			})
 			.CreateMapper();
 		}
@@ -70,14 +62,14 @@ namespace Quiz.Web.API.Controllers
 
 		[Authorize(Roles = "user")]
 		[HttpGet]
-		public async Task<IHttpActionResult> GetById(int id)
+		public IHttpActionResult GetById(int id)
 		{
 			if (id <= 0)
 				return BadRequest("Incorrect test id.");
 
 			try
 			{
-				TestDTO testDTO = await _testService.Get(id);
+				TestDTO testDTO = _testService.Get(id);
 
 				TestModel returnedTest = _mapper.Map<TestDTO, TestModel>(testDTO);
 
@@ -95,10 +87,9 @@ namespace Quiz.Web.API.Controllers
 
 		[Authorize(Roles = "user")]
 		[HttpGet]
-		public async Task<IHttpActionResult> Get(
-												 string query = "",
-												 int page = 1,
-												 int pageSize = 10)
+		public IHttpActionResult Get(string query = "",
+									 int page = 1,
+									 int pageSize = 10)
 		{
 
 			string searchQuery = String.IsNullOrEmpty(query) ? "" : query;
@@ -106,7 +97,7 @@ namespace Quiz.Web.API.Controllers
 			page = page > 0 ? page : 1;
 			pageSize = pageSize > 0 ? pageSize : 10;
 
-			PagedResultDTO<TestDTO> pagedResultDTO = await _testService.GetPaged(searchQuery, page, pageSize);
+			PagedResultDTO<TestDTO> pagedResultDTO = _testService.GetPaged(searchQuery, page, pageSize);
 
 			PagedResultModel<TestModel> pagedResult = _mapper.Map<PagedResultDTO<TestDTO>, PagedResultModel<TestModel>>(pagedResultDTO);
 
@@ -145,9 +136,11 @@ namespace Quiz.Web.API.Controllers
 
 			try
 			{
+				test.Id = id;
+
 				TestDTO testDTO = _mapper.Map<TestModel, TestDTO>(test);
 
-				TestDTO updatedTest = await _testService.Update(id, testDTO);
+				TestDTO updatedTest = await _testService.Update(testDTO);
 
 				TestModel returnedTest = _mapper.Map<TestDTO, TestModel>(updatedTest);
 
@@ -163,349 +156,274 @@ namespace Quiz.Web.API.Controllers
 			}
 		}
 
-		//[Authorize(Roles = "user")]
-		//[HttpPost]
-		//[Route("api/tests/{testId}/results")]
-		//public async Task<IHttpActionResult> SaveResult(int testId, TestResultModel result)
-		//{
-		//	if (testId <= 0)
-		//		return BadRequest("Incorrect test id.");
-		//	if (result == null)
-		//		return BadRequest("Test result must not be null.");
-
-		//	try
-		//	{
-		//		result.TestId = testId;
-		//		result.UserId = User.Identity.GetUserId();
-		//		result.PassageDate = DateTime.Now;
-
-		//		TestResultDTO resultDTO = _mapper.Map<TestResultModel, TestResultDTO>(result);
-		//		TestResultDTO savedResult = await _testService.SaveResult(testId, resultDTO);
-		//		TestResultModel returnedResult = _mapper.Map<TestResultDTO, TestResultModel>(savedResult);
-		//		return Ok(returnedResult);
-		//	}
-		//	catch (EntityNotFoundException)
-		//	{
-		//		return NotFound();
-		//	}
-		//	catch (Exception ex)
-		//	{
-		//		return BadRequest(ex.Message);
-		//	}
-		//}
-
 		protected override void Dispose(bool disposing)
 		{
 			_testService.Dispose();
 			base.Dispose(disposing);
 		}
 
-		//#region Question
+		#region Question
 
-		//[HttpPost]
-		//[Route("api/tests/{testId}/questions")]
-		//public IHttpActionResult AddQuestion(int testId, QuestionModel questionModel)
-		//{
-		//  if (testId <= 0)
-		//    return BadRequest("Incorrect test id.");
+		[HttpPost]
+		[Route("api/tests/{testId}/questions")]
+		public async Task<IHttpActionResult> AddQuestion(int testId, QuestionModel questionModel)
+		{
+			if (testId <= 0)
+				return BadRequest("Incorrect test id.");
 
-		//  if (questionModel == null)
-		//    return BadRequest("Question must not be null.");
+			if (questionModel == null)
+				return BadRequest("Question must not be null.");
 
-		//  try
-		//  {
-		//    QuestionDTO questionDTO = _mapper.Map<QuestionModel, QuestionDTO>(questionModel);
+			try
+			{
+				questionModel.TestId = testId;
 
-		//    TestDTO testDTO = _testService.AddQuestion(testId, questionDTO);
+				QuestionDTO questionDTO = _mapper.Map<QuestionModel, QuestionDTO>(questionModel);
 
-		//    TestModel returnedTest = _mapper.Map<TestDTO, TestModel>(testDTO);
+				QuestionDTO createdQuestion = await _testService.AddQuestion(questionDTO);
 
-		//    return Ok(returnedTest);
-		//  }
-		//  catch (EntityNotFoundException)
-		//  {
-		//    return NotFound();
-		//  }
-		//  catch (Exception ex)
-		//  {
-		//    return BadRequest(ex.Message);
-		//  }
-		//}
+				QuestionModel returnedQuestion = _mapper.Map<QuestionDTO, QuestionModel>(createdQuestion);
 
-		//[HttpDelete]
-		//[Route("api/tests/{testId}/questions/{questionId}")]
-		//public IHttpActionResult DeleteQuestion(int testId, int questionId)
-		//{
-		//  if (testId <= 0)
-		//    return BadRequest("Incorrect test id.");
+				return Ok(returnedQuestion);
+			}
+			catch (EntityNotFoundException)
+			{
+				return NotFound();
+			}
+			catch (Exception ex)
+			{
+				return BadRequest(ex.Message);
+			}
+		}
+		
+		[Authorize(Roles = "user")]
+		[HttpGet]
+		[Route("api/tests/{testId}/questions/{questionId}")]
+		public IHttpActionResult GetQuestion(int testId, int questionId)
+		{
+			if (testId <= 0)
+				return BadRequest("Incorrect test id.");
 
-		//  if (questionId <= 0)
-		//    return BadRequest("Incorrect question id.");
+			if (questionId <= 0)
+				return BadRequest("Incorrect question id.");
 
-		//  try
-		//  {
+			try
+			{
+				QuestionDTO questionDTO = _testService.GetQuestion(testId, questionId);
 
-		//    TestDTO testDTO = _testService.DeleteQuestion(testId, questionId);
+				QuestionModel returnedQuestion = _mapper.Map<QuestionDTO, QuestionModel>(questionDTO);
 
-		//    TestModel returnedTest = _mapper.Map<TestDTO, TestModel>(testDTO);
+				return Ok(returnedQuestion);
+			}
+			catch (EntityNotFoundException)
+			{
+				return NotFound();
+			}
+			catch (Exception ex)
+			{
+				return BadRequest(ex.Message);
+			}
+		}
 
-		//    return Ok(returnedTest);
-		//  }
-		//  catch (EntityNotFoundException)
-		//  {
-		//    return NotFound();
-		//  }
-		//  catch (Exception ex)
-		//  {
-		//    return BadRequest(ex.Message);
-		//  }
-		//}
+		[Authorize(Roles = "user")]
+		[HttpGet]
+		[Route("api/tests/{testId}/questions")]
+		public IHttpActionResult GetAllQuestions(int testId)
+		{
+			if (testId <= 0)
+				return BadRequest("Incorrect test id.");
 
-		//[HttpGet]
-		//[Route("api/tests/{testId}/questions/{questionId}")]
-		//public IHttpActionResult GetQuestion(int testId, int questionId)
-		//{
-		//  if (testId <= 0)
-		//    return BadRequest("Incorrect test id.");
+			try
+			{
+				List<QuestionDTO> questions = _testService.GetAllQuestions(testId).ToList();
 
-		//  if (questionId <= 0)
-		//    return BadRequest("Incorrect question id.");
+				List<QuestionModel> retunedQuestions = _mapper.Map<IEnumerable<QuestionDTO>, List<QuestionModel>>(questions);
 
-		//  try
-		//  {
-		//    QuestionDTO questionDTO = _testService.GetQuestion(testId, questionId);
+				return Ok(retunedQuestions);
+			}
+			catch (EntityNotFoundException)
+			{
+				return NotFound();
+			}
+			catch (Exception ex)
+			{
+				return BadRequest(ex.Message);
+			}
+		}
 
-		//    QuestionModel returnedQuestion = _mapper.Map<QuestionDTO, QuestionModel>(questionDTO);
+		[HttpPut]
+		[Route("api/tests/{testId}/questions/{questionId}")]
+		public async Task<IHttpActionResult> UpdateQuestion(int testId, int questionId, QuestionModel questionModel)
+		{
+			if (testId <= 0)
+				return BadRequest("Incorrect test id.");
 
-		//    return Ok(returnedQuestion);
-		//  }
-		//  catch (EntityNotFoundException)
-		//  {
-		//    return NotFound();
-		//  }
-		//  catch (Exception ex)
-		//  {
-		//    return BadRequest(ex.Message);
-		//  }
-		//}
+			if (questionId <= 0)
+				return BadRequest("Incorrect question id.");
 
-		//[HttpGet]
-		//[Route("api/tests/{testId}/questions")]
-		//public IHttpActionResult GetAllQuestions(int testId)
-		//{
-		//  if (testId <= 0)
-		//    return BadRequest("Incorrect test id.");
+			if (questionModel == null)
+				return BadRequest("Question must not be null.");
 
-		//  try
-		//  {
-		//    List<QuestionDTO> questions = _testService.GetAllQuestions(testId).ToList();
+			try
+			{
+				questionModel.Id = questionId;
 
-		//    List<QuestionModel> retunedQuestions = _mapper.Map<IEnumerable<QuestionDTO>, List<QuestionModel>>(questions);
+				questionModel.TestId = testId;
 
-		//    return Ok(retunedQuestions);
-		//  }
-		//  catch (EntityNotFoundException)
-		//  {
-		//    return NotFound();
-		//  }
-		//  catch (Exception ex)
-		//  {
-		//    return BadRequest(ex.Message);
-		//  }
-		//}
+				QuestionDTO questionDTO = _mapper.Map<QuestionModel, QuestionDTO>(questionModel);
 
-		//[HttpPut]
-		//[Route("api/tests/{testId}/questions/{questionId}")]
-		//public IHttpActionResult UpdateQuestion(int testId, int questionId, QuestionModel questionModel)
-		//{
-		//  if (testId <= 0)
-		//    return BadRequest("Incorrect test id.");
+				QuestionDTO returnedQuestion = await _testService.UpdateQuestion(questionDTO);
 
-		//  if (questionId <= 0)
-		//    return BadRequest("Incorrect question id.");
+				QuestionModel question = _mapper.Map<QuestionDTO, QuestionModel>(returnedQuestion);
+				
+				return Ok(question);
+			}
+			catch (EntityNotFoundException)
+			{
+				return NotFound();
+			}
+			catch (Exception ex)
+			{
+				return BadRequest(ex.Message);
+			}
+		}
 
-		//  if (questionModel == null)
-		//    return BadRequest("Question must not be null.");
+		#endregion
 
-		//  try
-		//  {
-		//    QuestionDTO questionDTO = _mapper.Map<QuestionModel, QuestionDTO>(questionModel);
+		#region Answer
 
-		//    TestDTO testDTO = _testService.UpdateQuestion(testId, questionId, questionDTO);
+		[HttpPost]
+		[Route("api/tests/{testId}/questions/{questionId}/answers")]
+		public async Task<IHttpActionResult> AddAnswerToQuestion(int testId, int questionId, AnswerModel answerModel)
+		{
+			if (testId <= 0)
+				return BadRequest("Incorrect test id.");
+			if (questionId <= 0)
+				return BadRequest("Incorrect question id.");
+			if (answerModel == null)
+				return BadRequest("Answer must not be null.");
 
-		//    TestModel returnedTest = _mapper.Map<TestDTO, TestModel>(testDTO);
+			try
+			{
+				answerModel.QuestionId = questionId;
 
-		//    return Ok(returnedTest);
-		//  }
-		//  catch (EntityNotFoundException)
-		//  {
-		//    return NotFound();
-		//  }
-		//  catch (Exception ex)
-		//  {
-		//    return BadRequest(ex.Message);
-		//  }
-		//}
+				AnswerDTO answerDTO = _mapper.Map<AnswerModel, AnswerDTO>(answerModel);
 
-		//#endregion
+				AnswerDTO createdanswer = await _testService.AddAnswerToQuestion(answerDTO);
 
-		//#region Answer
+				AnswerModel returnedTest = _mapper.Map<AnswerDTO, AnswerModel>(createdanswer);
 
-		//[HttpPost]
-		//[Route("api/tests/{testId}/questions/{questionId}/answers")]
-		//public IHttpActionResult AddAnswerToQuestion(int testId, int questionId, AnswerModel answerModel)
-		//{
-		//  if (testId <= 0)
-		//    return BadRequest("Incorrect test id.");
-		//  if (questionId <= 0)
-		//    return BadRequest("Incorrect question id.");
-		//  if (answerModel == null)
-		//    return BadRequest("Answer must not be null.");
+				return Ok(returnedTest);
+			}
+			catch (EntityNotFoundException)
+			{
+				return NotFound();
+			}
+			catch (Exception ex)
+			{
+				return BadRequest(ex.Message);
+			}
+		}
+		
+		[Authorize(Roles = "user")]
+		[HttpGet]
+		[Route("api/tests/{testId}/questions/{questionId}/answers/{answerId}")]
+		public IHttpActionResult GetAnswerFromQuestion(int testId, int questionId, int answerId)
+		{
+			if (testId <= 0)
+				return BadRequest("Incorrect test id.");
 
-		//  try
-		//  {
-		//    AnswerDTO answerDTO = _mapper.Map<AnswerModel, AnswerDTO>(answerModel);
+			if (questionId <= 0)
+				return BadRequest("Incorrect question id.");
 
-		//    TestDTO testDTO = _testService.AddAnswerToQuestion(testId, questionId, answerDTO);
+			if (answerId <= 0)
+				return BadRequest("Incorrect answer id.");
 
-		//    TestModel returnedTest = _mapper.Map<TestDTO, TestModel>(testDTO);
+			try
+			{
+				AnswerDTO answerDTO = _testService.GetAnswerFromQuestion(testId, questionId, answerId);
 
-		//    return Ok(returnedTest);
-		//  }
-		//  catch (EntityNotFoundException)
-		//  {
-		//    return NotFound();
-		//  }
-		//  catch (Exception ex)
-		//  {
-		//    return BadRequest(ex.Message);
-		//  }
-		//}
+				AnswerModel returnedAnswer = _mapper.Map<AnswerDTO, AnswerModel>(answerDTO);
 
-		//[HttpDelete]
-		//[Route("api/tests/{testId}/questions/{questionId}/answers/{answerId}")]
-		//public IHttpActionResult DeleteAnswerFromQuestion(int testId, int questionId, int answerId)
-		//{
-		//  if (testId <= 0)
-		//    return BadRequest("Incorrect test id.");
+				return Ok(returnedAnswer);
+			}
+			catch (EntityNotFoundException)
+			{
+				return NotFound();
+			}
+			catch (Exception ex)
+			{
+				return BadRequest(ex.Message);
+			}
+		}
 
-		//  if (questionId <= 0)
-		//    return BadRequest("Incorrect question id.");
+		[Authorize(Roles = "user")]
+		[HttpGet]
+		[Route("api/tests/{testId}/questions/{questionId}/{answers}")]
+		public IHttpActionResult GetAllAnswersFromQuestion(int testId, int questionId)
+		{
+			if (testId <= 0)
+				return BadRequest("Incorrect test id.");
+			if (questionId <= 0)
+				return BadRequest("Incorrect question id.");
 
-		//  if (answerId <= 0)
-		//    return BadRequest("Incorrect answer id.");
+			try
+			{
+				List<AnswerDTO> answers = _testService.GetAllAnswersFromQuestion(testId, questionId).ToList();
 
-		//  try
-		//  {
-		//    TestDTO testDTO = _testService.DeleteAnswerFromQuestion(testId, questionId, answerId);
+				List<AnswerModel> retunedAnswers = _mapper.Map<IEnumerable<AnswerDTO>, List<AnswerModel>>(answers);
 
-		//    TestModel returnedTest = _mapper.Map<TestDTO, TestModel>(testDTO);
+				return Ok(retunedAnswers);
+			}
+			catch (EntityNotFoundException)
+			{
+				return NotFound();
+			}
+			catch (Exception ex)
+			{
+				return BadRequest(ex.Message);
+			}
+		}
 
-		//    return Ok(returnedTest);
-		//  }
-		//  catch (EntityNotFoundException)
-		//  {
-		//    return NotFound();
-		//  }
-		//  catch (Exception ex)
-		//  {
-		//    return BadRequest(ex.Message);
-		//  }
-		//}
+		[HttpPut]
+		[Route("api/tests/{testId}/questions/{questionId}/answers/{answerId}")]
+		public async Task<IHttpActionResult> UpdateAnswerFromQuestion(int testId, int questionId, int answerId, AnswerModel answerModel)
+		{
+			if (testId <= 0)
+				return BadRequest("Incorrect test id.");
+			if (questionId <= 0)
+				return BadRequest("Incorrect question id.");
+			if (answerId <= 0)
+				return BadRequest("Incorrect answer id.");
 
-		//[HttpGet]
-		//[Route("api/tests/{testId}/questions/{questionId}/answers/{answerId}")]
-		//public IHttpActionResult GetAnswerFromQuestion(int testId, int questionId, int answerId)
-		//{
-		//  if (testId <= 0)
-		//    return BadRequest("Incorrect test id.");
+			if (answerModel == null)
+				return BadRequest("Answer must not be null.");
 
-		//  if (questionId <= 0)
-		//    return BadRequest("Incorrect question id.");
+			try
+			{
+				answerModel.QuestionId = questionId;
 
-		//  if (answerId <= 0)
-		//    return BadRequest("Incorrect answer id.");
+				answerModel.Id = answerId;
 
-		//  try
-		//  {
-		//    AnswerDTO answerDTO = _testService.GetAnswerFromQuestion(testId, questionId, answerId);
+				AnswerDTO answerDTO = _mapper.Map<AnswerModel, AnswerDTO>(answerModel);
 
-		//    AnswerModel returnedAnswer = _mapper.Map<AnswerDTO, AnswerModel>(answerDTO);
+				AnswerDTO updatedAnswer = await _testService.UpdateAnswerFromQuestion(answerDTO);
 
-		//    return Ok(returnedAnswer);
-		//  }
-		//  catch (EntityNotFoundException)
-		//  {
-		//    return NotFound();
-		//  }
-		//  catch (Exception ex)
-		//  {
-		//    return BadRequest(ex.Message);
-		//  }
-		//}
+				AnswerModel returnedAnswer = _mapper.Map<AnswerDTO, AnswerModel>(updatedAnswer);
 
-		//[HttpGet]
-		//[Route("api/tests/{testId}/questions/{questionId}/{answers}")]
-		//public IHttpActionResult GetAllAnswersFromQuestion(int testId, int questionId)
-		//{
-		//  if (testId <= 0)
-		//    return BadRequest("Incorrect test id.");
-		//  if (questionId <= 0)
-		//    return BadRequest("Incorrect question id.");
+				return Ok(returnedAnswer);
+			}
+			catch (EntityNotFoundException)
+			{
+				return NotFound();
+			}
+			catch (Exception ex)
+			{
+				return BadRequest(ex.Message);
+			}
+		}
 
-		//  try
-		//  {
-		//    List<AnswerDTO> answers = _testService.GetAllAnswersFromQuestion(testId, questionId).ToList();
-
-		//    List<AnswerModel> retunedAnswers = _mapper.Map<IEnumerable<AnswerDTO>, List<AnswerModel>>(answers);
-
-		//    return Ok(retunedAnswers);
-		//  }
-		//  catch (EntityNotFoundException)
-		//  {
-		//    return NotFound();
-		//  }
-		//  catch (Exception ex)
-		//  {
-		//    return BadRequest(ex.Message);
-		//  }
-		//}
-
-		//[HttpPut]
-		//[Route("api/tests/{testId}/questions/{questionId}/answers/{answerId}")]
-		//public IHttpActionResult UpdateAnswerFromQuestion(int testId, int questionId, int answerId, AnswerModel answerModel)
-		//{
-		//  if (testId <= 0)
-		//    return BadRequest("Incorrect test id.");
-		//  if (questionId <= 0)
-		//    return BadRequest("Incorrect question id.");
-		//  if (answerId <= 0)
-		//    return BadRequest("Incorrect answer id.");
-
-		//  if (answerModel == null)
-		//    return BadRequest("Answer must not be null.");
-
-		//  try
-		//  {
-		//    AnswerDTO answerDTO = _mapper.Map<AnswerModel, AnswerDTO>(answerModel);
-
-		//    TestDTO testDTO = _testService.UpdateAnswerFromQuestion(testId, questionId, answerId, answerDTO);
-
-		//    TestModel returnedTest = _mapper.Map<TestDTO, TestModel>(testDTO);
-
-		//    return Ok(returnedTest);
-		//  }
-		//  catch (EntityNotFoundException)
-		//  {
-		//    return NotFound();
-		//  }
-		//  catch (Exception ex)
-		//  {
-		//    return BadRequest(ex.Message);
-		//  }
-		//}
-
-		//#endregion
+		#endregion
 
 	}
 }

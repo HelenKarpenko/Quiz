@@ -1,4 +1,5 @@
-﻿using Quiz.BLL.DTO.UserResult;
+﻿using Quiz.BLL.DTO;
+using Quiz.BLL.DTO.UserResult;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -10,9 +11,13 @@ namespace Quiz.BLL.Interfaces
 
 		Task<TestResultDTO> Delete(int id);
 
-		Task<TestResultDTO> Get(int id);
+		TestResultDTO Get(int id);
 
-		Task<IEnumerable<TestResultDTO>> GetAll();
+		IEnumerable<TestResultDTO> GetAll();
+
+		PagedResultDTO<TestResultDTO> GetPaged(
+			int page = 1,
+			int pageSize = 10);
 
 		void Dispose();
 	}

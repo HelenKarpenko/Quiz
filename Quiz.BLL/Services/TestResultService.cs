@@ -95,12 +95,12 @@ namespace Quiz.BLL.Services
 			_database.Dispose();
 		}
 
-		public async Task<TestResultDTO> Get(int id)
+		public TestResultDTO Get(int id)
 		{
 			if (id <= 0)
 				throw new ArgumentException("Incorrect result id.");
 
-			TestResult testResult = await _database.TestResults.GetAsync(id);
+			TestResult testResult = _database.TestResults.Get(id);
 
 			if (testResult == null)
 				throw new EntityNotFoundException($"Test result with id = {id} not found.");
@@ -110,13 +110,38 @@ namespace Quiz.BLL.Services
 			return returnedTestResult;
 		}
 
-		public async Task<IEnumerable<TestResultDTO>> GetAll()
+		public IEnumerable<TestResultDTO> GetAll()
 		{
-			IEnumerable<TestResult> testResults = await _database.TestResults.GetAllAsync();
+			IEnumerable<TestResult> testResults = _database.TestResults.GetAll().ToList();
 
 			List<TestResultDTO> returnedTestResults = _mapper.Map<IEnumerable<TestResult>, List<TestResultDTO>>(testResults);
 
 			return returnedTestResults;
+		}
+
+		public PagedResultDTO<TestResultDTO> GetPaged(
+			int page = 1,
+			int pageSize = 10)
+		{
+			if (page <= 0)
+				throw new ArgumentException("Page must be greater than zero.");
+			if (pageSize <= 0)
+				throw new ArgumentException("Page size must be greater than zero.");
+
+			IQueryable<TestResult> results = _database.TestResults.GetAll();
+			
+			int skip = pageSize * (page - 1);
+			int total = results.Count();
+
+			var resultsPaged = results
+				.OrderBy(t => t.Id)
+				.Skip(skip)
+				.Take(pageSize)
+				.ToList();
+
+			List<TestResultDTO> resultDTOs = _mapper.Map<List<TestResult>, List<TestResultDTO>>(resultsPaged);
+
+			return new PagedResultDTO<TestResultDTO>(resultDTOs, page, pageSize, total);
 		}
 	}
 }

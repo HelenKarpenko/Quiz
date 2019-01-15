@@ -77,14 +77,10 @@
     <Compile Include="DTO\UserResult\TestResultDTO.cs" />
     <Compile Include="Exceptions\DoesNotContainException.cs" />
     <Compile Include="Exceptions\EntityNotFoundException.cs" />
-    <Compile Include="Interfaces\IAnswerService.cs" />
-    <Compile Include="Interfaces\IQuestionService.cs" />
     <Compile Include="Interfaces\ITestResultService.cs" />
     <Compile Include="Interfaces\ITestService.cs" />
     <Compile Include="Interfaces\IUserService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Services\AnswerService.cs" />
-    <Compile Include="Services\QuestionService.cs" />
     <Compile Include="Services\TestResultService.cs" />
     <Compile Include="Services\TestService.cs" />
     <Compile Include="Services\UserService.cs" />

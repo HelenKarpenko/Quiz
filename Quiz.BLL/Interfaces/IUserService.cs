@@ -20,7 +20,7 @@ namespace Quiz.BLL.Interfaces
 												int page = 1,
 												int pageSize = 10);
 
-		Task<IEnumerable<TestResultDTO>> GetAllTests(string id);
+		IEnumerable<TestResultDTO> GetAllTests(string id);
 
 		void Dispose();
     }

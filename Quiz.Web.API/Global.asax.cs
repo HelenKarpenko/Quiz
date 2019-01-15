@@ -1,8 +1,4 @@
 using Newtonsoft.Json.Serialization;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
 using System.Web.Http;
 using System.Web.Mvc;
 using System.Web.Optimization;
@@ -23,13 +19,5 @@ namespace Quiz.Web.API
       config.Formatters.JsonFormatter.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
       config.Formatters.JsonFormatter.UseDataContractJsonSerializer = false;
     }
-
-    //protected void Application_BeginRequest(object sender, EventArgs e)
-    //{
-    //  if (HttpContext.Current.Request.HttpMethod == "OPTIONS")
-    //  {
-    //    HttpContext.Current.Response.Flush();
-    //  }
-    //}
   }
 }

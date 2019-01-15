@@ -1,11 +1,9 @@
 using Quiz.DAL.Context;
 using Quiz.DAL.Interfaces;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Data.Entity;
-using System.Threading.Tasks;
 using Quiz.DAL.Entities.User;
+using System.Linq.Expressions;
 
 namespace Quiz.DAL.Repositories
 {
@@ -38,26 +36,14 @@ namespace Quiz.DAL.Repositories
 			return db.UsersInfo.Remove(user);
 		}
 
-		public IEnumerable<UserInfo> Find(Func<UserInfo, bool> predicate)
+		public IQueryable<UserInfo> Find(Expression<Func<UserInfo, bool>> predicate)
 		{
 			if (predicate == null)
 				throw new ArgumentNullException("Predicate must not be null.");
 
-			return db.UsersInfo.Where(predicate).ToList();
+			return db.UsersInfo.Where(predicate);
 		}
-
-		public async Task<IEnumerable<UserInfo>> FindAsync(Func<UserInfo, bool> predicate)
-		{
-			if (predicate == null)
-				throw new ArgumentNullException("Predicate must not be null.");
-
-			IEnumerable<UserInfo> users = await db.UsersInfo.ToListAsync();
-
-			List<UserInfo> returnerUsers = users.Where(predicate).ToList();
-
-			return returnerUsers;
-		}
-
+		
 		public UserInfo Get(int id)
 		{
 			if (id <= 0)
@@ -66,24 +52,11 @@ namespace Quiz.DAL.Repositories
 			return db.UsersInfo.Find(id);
 		}
 
-		public IEnumerable<UserInfo> GetAll()
+		public IQueryable<UserInfo> GetAll()
 		{
 			return db.UsersInfo;
 		}
-
-		public async Task<IEnumerable<UserInfo>> GetAllAsync()
-		{
-			return await db.UsersInfo.ToListAsync();
-		}
-
-		public async Task<UserInfo> GetAsync(int id)
-		{
-			if (id <= 0)
-				throw new ArgumentException("Incorrect test id.");
-
-			return await db.UsersInfo.FindAsync(id);
-		}
-
+		
 		public UserInfo Update(int id, UserInfo item)
 		{
 			if (item == null)

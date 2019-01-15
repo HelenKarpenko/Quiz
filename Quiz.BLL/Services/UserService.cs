@@ -30,7 +30,8 @@ namespace Quiz.BLL.Services
 				cfg.CreateMap<ApplicationUser, UserDTO>();
 				cfg.CreateMap<UserDTO, ApplicationUser>();
 				cfg.CreateMap<Test, TestDTO>();
-				cfg.CreateMap<TestResult, TestResultDTO>();
+				cfg.CreateMap<TestResult, TestResultDTO>()
+					.ForMember(rDTO => rDTO.MaxResult, map => map.MapFrom(r => r.Test.Questions.Count));
 				cfg.CreateMap<TestResultDTO, TestResult>();
 				cfg.CreateMap<ResultDetails, ResultDetailsDTO>();
 				cfg.CreateMap<ResultDetailsDTO, ResultDetails>();
@@ -85,20 +86,31 @@ namespace Quiz.BLL.Services
 			if (pageSize <= 0)
 				throw new ArgumentException("Page size must be greater than zero.");
 
-			IEnumerable<UserDTO> users = await GetAll();
+			IQueryable<ApplicationUser> users = _database.UserManager.Users;
 
-			List<UserDTO> returnedUsers = users.Where(u => u.UserName.ToLower().Contains(query.ToLower()) || u.Email.ToLower().Contains(query.ToLower())).ToList();
-
+			if (!string.IsNullOrEmpty(query))
+			{
+				users = users.Where(u => u.UserName.ToLower().Contains(query.ToLower()) || u.Email.ToLower().Contains(query.ToLower()));
+			}
+			
 			int skip = pageSize * (page - 1);
-			int total = returnedUsers.Count();
+			int total = users.Count();
 
-			List<UserDTO> result = returnedUsers
+			List<ApplicationUser> result = users
 				.OrderBy(t => t.Id)
 				.Skip(skip)
 				.Take(pageSize)
 				.ToList();
-			
-			return new PagedResultDTO<UserDTO>(result, page, pageSize, total);
+
+			List<UserDTO> returnedUsers = _mapper.Map<IEnumerable<ApplicationUser>, List<UserDTO>>(result);
+
+			foreach (var user in returnedUsers)
+			{
+				var roles = await GetRoles(user.Id);
+				user.Roles = roles.ToList();
+			}
+
+			return new PagedResultDTO<UserDTO>(returnedUsers, page, pageSize, total);
 		}
 
 		public async Task<IEnumerable<string>> GetRoles(string id)
@@ -160,51 +172,18 @@ namespace Quiz.BLL.Services
 			return returnedUser;
 		}
 
-		public async Task<IEnumerable<TestResultDTO>> GetAllTests(string id)
+		public IEnumerable<TestResultDTO> GetAllTests(string id)
 		{
 			if (id == null)
 				throw new ArgumentNullException("Id must not be null.");
 
-			IEnumerable<TestResult> results = await _database.TestResults.FindAsync(x => x.UserId == id);
+			IEnumerable<TestResult> results = _database.TestResults.Find(x => x.UserId == id).ToList();
 
 			List<TestResultDTO> resultsDTO = _mapper.Map<IEnumerable<TestResult>, List<TestResultDTO>>(results);
-
-			foreach (var r in results)
-			{
-				foreach (var rDTO in resultsDTO)
-				{
-					rDTO.TestName = r.Test.Name;
-					rDTO.MaxResult = r.Test.Questions.Count;
-					rDTO.UserName = r.User.ApplicationUser.UserName;
-				}
-			}
-
+			
 			return resultsDTO;
 		}
-
-		//public async Task<IEnumerable<TestResultDTO>> GetResultByTestId(string userId, int testId)
-		//{
-		//	if (userId == null)
-		//		throw new ArgumentNullException("Id must not be null.");
-		//	if (testId <= 0)
-		//		throw new ArgumentException("Incorrect test id");
-
-		//	IEnumerable<TestResult> results = await _database.TestResults.FindAsync(x => x.UserId == userId && testId);
-
-		//	List<TestResultDTO> resultsDTO = _mapper.Map<IEnumerable<TestResult>, List<TestResultDTO>>(results);
-
-		//	foreach (var r in results)
-		//	{
-		//		foreach (var rDTO in resultsDTO)
-		//		{
-		//			rDTO.TestName = r.Test.Name;
-		//			rDTO.MaxResult = r.Test.Questions.Count;
-		//		}
-		//	}
-
-		//	return resultsDTO;
-		//}
-
+		
 		public void Dispose()
 		{
 			_database.Dispose();

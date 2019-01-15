@@ -1,11 +1,12 @@
 ﻿using AutoMapper;
 using Microsoft.AspNet.Identity;
+using Quiz.BLL.DTO;
 using Quiz.BLL.DTO.UserResult;
 using Quiz.BLL.Exceptions;
 using Quiz.BLL.Interfaces;
+using Quiz.Web.API.Models;
 using Quiz.Web.API.Models.UserResult;
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Web.Http;
 
@@ -31,6 +32,7 @@ namespace Quiz.Web.API.Controllers
 			.CreateMapper();
 		}
 
+		[Authorize(Roles = "user")]
 		[HttpPost]
 		public async Task<IHttpActionResult> Create(TestResultModel result)
 		{
@@ -61,16 +63,17 @@ namespace Quiz.Web.API.Controllers
 				return BadRequest(ex.Message);
 			}
 		}
-		
+
+		[Authorize(Roles = "user")]
 		[HttpGet]
-		public async Task<IHttpActionResult> GetById(int id)
+		public IHttpActionResult GetById(int id)
 		{
 			if (id <= 0)
 				return BadRequest("Incorrect result id.");
 
 			try
 			{
-				TestResultDTO resultDTO = await _resultService.Get(id);
+				TestResultDTO resultDTO = _resultService.Get(id);
 
 				TestResultModel returnedResult = _mapper.Map<TestResultDTO, TestResultModel>(resultDTO);
 
@@ -85,17 +88,23 @@ namespace Quiz.Web.API.Controllers
 				return BadRequest(ex.Message);
 			}
 		}
-		
+
+		[Authorize(Roles = "user")]
 		[HttpGet]
-		public async Task<IHttpActionResult> GetAll()
+		public IHttpActionResult Get(int page = 1,
+									 int pageSize = 10)
 		{
-			IEnumerable<TestResultDTO> resultDTO = await _resultService.GetAll();
+			page = page > 0 ? page : 1;
+			pageSize = pageSize > 0 ? pageSize : 10;
 
-			List<TestResultModel> result = _mapper.Map<IEnumerable<TestResultDTO>, List<TestResultModel>>(resultDTO);
+			PagedResultDTO<TestResultDTO> pagedResultDTO = _resultService.GetPaged(page, pageSize);
 
-			return Ok(result);
+			PagedResultModel<TestResultModel> pagedResult = _mapper.Map<PagedResultDTO<TestResultDTO>, PagedResultModel<TestResultModel>>(pagedResultDTO);
+			
+			return Ok(pagedResult);
 		}
 
+		[Authorize(Roles = "admin")]
 		[HttpDelete]
 		public async Task<IHttpActionResult> DeleteById(int id)
 		{
